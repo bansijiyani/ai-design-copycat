@@ -102,8 +102,8 @@ function ProductsPage() {
 
   const setCategory = (c: string) => navigate({ search: c === "all" ? {} : { category: c } });
 
-  // Build category list: "all" + database categories
-  const categoryList = ["all", ...categories.map((c: any) => c.slug)];
+  // Build category list: "all" + active database categories
+  const categoryList = ["all", ...categories.filter((c: any) => c.is_active !== false).map((c: any) => c.slug)];
 
   return (
     <div className="min-h-screen bg-background">

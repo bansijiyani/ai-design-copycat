@@ -69,6 +69,7 @@ export const createCategory = createServerFn({ method: "POST" })
     slug: z.string().min(1),
     section: z.string().default("ethnic"),
     image: z.string().nullable().optional(),
+    is_active: z.boolean().default(true).optional(),
   }))
   .handler(async ({ data: input }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -88,6 +89,7 @@ export const updateCategory = createServerFn({ method: "POST" })
     slug: z.string().min(1).optional(),
     section: z.string().optional(),
     image: z.string().nullable().optional(),
+    is_active: z.boolean().optional(),
   }))
   .handler(async ({ data: { id, ...fields } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
