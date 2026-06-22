@@ -73,6 +73,7 @@ export type Database = {
           section: string
           image: string | null
           created_at: string
+          is_active: boolean
         }
         Insert: {
           id?: string
@@ -81,6 +82,7 @@ export type Database = {
           section?: string
           image?: string | null
           created_at?: string
+          is_active?: boolean
         }
         Update: {
           id?: string
@@ -89,6 +91,7 @@ export type Database = {
           section?: string
           image?: string | null
           created_at?: string
+          is_active?: boolean
         }
         Relationships: []
       }
