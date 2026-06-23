@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // ─── Authenticated: User Addresses ──────────────────────────────────────────
 
 export const getMyAddresses = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -33,6 +35,7 @@ const addressInputSchema = z.object({
 });
 
 export const createAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(addressInputSchema)
   .handler(async ({ data: input, context }) => {
     const userId = (context as any)?.userId;
@@ -58,6 +61,7 @@ export const createAddress = createServerFn({ method: "POST" })
   });
 
 export const updateAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).merge(addressInputSchema.partial()))
   .handler(async ({ data: { id, ...fields }, context }) => {
     const userId = (context as any)?.userId;
@@ -83,6 +87,7 @@ export const updateAddress = createServerFn({ method: "POST" })
   });
 
 export const deleteAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
@@ -99,6 +104,7 @@ export const deleteAddress = createServerFn({ method: "POST" })
   });
 
 export const setDefaultAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;

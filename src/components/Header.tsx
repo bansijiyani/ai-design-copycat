@@ -132,9 +132,9 @@ export function Header() {
               </Link>
             )}
             {user ? (
-              <button onClick={() => signOut()} className="p-2 hover:text-gold transition" aria-label="Sign out">
-                <LogOut className="w-5 h-5" />
-              </button>
+              <Link to="/profile" className="p-2 hover:text-gold transition" aria-label="Profile">
+                <User className="w-5 h-5" />
+              </Link>
             ) : (
               <Link to="/login" className="p-2 hover:text-gold transition" aria-label="Account">
                 <User className="w-5 h-5" />

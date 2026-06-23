@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // ─── Authenticated: Create Order ────────────────────────────────────────────
 
@@ -13,6 +14,7 @@ const orderItemSchema = z.object({
 });
 
 export const createOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({
     address_id: z.string().uuid(),
     items: z.array(orderItemSchema).min(1),
@@ -144,6 +146,7 @@ export const createOrder = createServerFn({ method: "POST" })
 // ─── Authenticated: My Orders ───────────────────────────────────────────────
 
 export const getMyOrders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -163,6 +166,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
   });
 
 export const getOrderById = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
