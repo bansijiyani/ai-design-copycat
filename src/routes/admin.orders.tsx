@@ -7,7 +7,7 @@ export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
 
-const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
+const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "return_initiated", "return_received", "refund_completed"] as const;
 
 function AdminOrders() {
   const qc = useQueryClient();

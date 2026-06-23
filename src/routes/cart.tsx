@@ -8,7 +8,13 @@ import { Footer } from "@/components/Footer";
 import { useCart } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { getMyAddresses, createAddress } from "@/lib/api/address.functions";
-import { createOrder } from "@/lib/api/order.functions";
+import { createOrder, verifyRazorpayPayment } from "@/lib/api/order.functions";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ title: "Your Cart — FizTopz" }] }),
@@ -24,6 +30,7 @@ function CartPage() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("online");
   const [submitting, setSubmitting] = useState(false);
 
   // Address form state
@@ -59,6 +66,15 @@ function CartPage() {
       return;
     }
     setCheckingOut(true);
+    
+    // Load Razorpay Script dynamically
+    if (!document.getElementById("razorpay-script")) {
+      const script = document.createElement("script");
+      script.id = "razorpay-script";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
   };
 
   const handleSaveAddress = async () => {
@@ -79,7 +95,7 @@ function CartPage() {
     }
     setSubmitting(true);
     try {
-      await createOrder({
+      const res = await createOrder({
         data: {
           address_id: selectedAddressId,
           items: items.map((i) => ({
@@ -90,12 +106,60 @@ function CartPage() {
             quantity: i.qty,
             image: i.image ?? null,
           })),
-          payment_method: "cod",
+          payment_method: paymentMethod,
         },
       });
-      toast.success("Order placed successfully! 🎉");
-      clear();
-      setCheckingOut(false);
+
+      if (paymentMethod === "online" && res.razorpayOrderId) {
+        if (!window.Razorpay) {
+          throw new Error("Razorpay SDK not loaded");
+        }
+        
+        const options = {
+          key: res.razorpayKeyId,
+          amount: (subtotal + shipping) * 100,
+          currency: "INR",
+          name: "FizTopz",
+          description: "Premium Fashion E-Commerce",
+          order_id: res.razorpayOrderId,
+          handler: async function (response: any) {
+            try {
+              toast.loading("Verifying payment...", { id: "verify-pay" });
+              await verifyRazorpayPayment({
+                data: {
+                  order_id: res.order.id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                }
+              });
+              toast.success("Payment successful! Order placed! 🎉", { id: "verify-pay" });
+              clear();
+              setCheckingOut(false);
+            } catch (err: any) {
+              toast.error(err.message || "Payment verification failed", { id: "verify-pay" });
+            }
+          },
+          prefill: {
+            name: addrForm.full_name || user.full_name || "",
+            email: user.email || "",
+            contact: addrForm.phone || "",
+          },
+          theme: {
+            color: "#b8924a"
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", function (response: any) {
+          toast.error(`Payment Failed: ${response.error.description}`);
+        });
+        rzp.open();
+      } else {
+        toast.success("Order placed successfully! 🎉");
+        clear();
+        setCheckingOut(false);
+      }
     } catch (e: any) {
       toast.error(e.message || "Failed to place order");
     } finally {
@@ -225,14 +289,30 @@ function CartPage() {
           <aside className="bg-muted/40 p-6 rounded-sm h-fit sticky top-28">
             <h2 className="font-display text-2xl mb-6">Order Summary</h2>
             {checkingOut && (
-              <div className="mb-4 space-y-2 border-b border-border pb-4">
-                {items.map((i) => (
-                  <div key={`${i.id}__${i.variantId ?? ""}`} className="flex justify-between text-sm">
-                    <span className="truncate mr-2">{i.productName} × {i.qty}</span>
-                    <span>₹{(i.price * i.qty).toLocaleString("en-IN")}</span>
+              <>
+                <div className="mb-4 space-y-2 border-b border-border pb-4">
+                  {items.map((i) => (
+                    <div key={`${i.id}__${i.variantId ?? ""}`} className="flex justify-between text-sm">
+                      <span className="truncate mr-2">{i.productName} × {i.qty}</span>
+                      <span>₹{(i.price * i.qty).toLocaleString("en-IN")}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="font-semibold text-sm mb-3">Payment Method</h3>
+                  <div className="space-y-2">
+                    <label className={`flex items-center gap-3 p-3 border rounded-sm cursor-pointer transition ${paymentMethod === "online" ? "border-gold bg-gold/5" : "border-border"}`}>
+                      <input type="radio" name="payment_method" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-[var(--gold)]" />
+                      <span className="text-sm font-medium">Pay Online (Razorpay)</span>
+                    </label>
+                    <label className={`flex items-center gap-3 p-3 border rounded-sm cursor-pointer transition ${paymentMethod === "cod" ? "border-gold bg-gold/5" : "border-border"}`}>
+                      <input type="radio" name="payment_method" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-[var(--gold)]" />
+                      <span className="text-sm font-medium">Cash on Delivery</span>
+                    </label>
                   </div>
-                ))}
-              </div>
+                </div>
+              </>
             )}
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
@@ -247,7 +327,7 @@ function CartPage() {
                 disabled={submitting || !selectedAddressId}
                 className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50"
               >
-                {submitting ? "PLACING ORDER…" : "PLACE ORDER (COD)"}
+                {submitting ? "PROCESSING…" : `PLACE ORDER (${paymentMethod === "online" ? "PAY NOW" : "COD"})`}
               </button>
             ) : (
               <button onClick={handleCheckout} className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition">

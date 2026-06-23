@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 // ─── Authenticated: Create Order ────────────────────────────────────────────
 
@@ -140,7 +142,82 @@ export const createOrder = createServerFn({ method: "POST" })
       });
     if (payErr) throw new Error(payErr.message);
 
-    return order;
+    let razorpayOrderId = null;
+    let razorpayKeyId = process.env.RAZORPAY_KEY_ID || null;
+
+    if (input.payment_method === "online") {
+      if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        throw new Error("Razorpay credentials not configured in environment variables");
+      }
+      
+      const rzp = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+
+      const rzpOrder = await rzp.orders.create({
+        amount: grandTotal * 100, // amount in the smallest currency unit (paise)
+        currency: "INR",
+        receipt: order.id,
+      });
+
+      razorpayOrderId = rzpOrder.id;
+
+      // Store razorpay_order_id in payment metadata
+      await supabaseAdmin
+        .from("payments")
+        .update({ metadata: { razorpay_order_id: rzpOrder.id } })
+        .eq("order_id", order.id);
+    }
+
+    return { order, razorpayOrderId, razorpayKeyId };
+  });
+
+// ─── Authenticated: Verify Razorpay Payment ─────────────────────────────────
+
+export const verifyRazorpayPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({
+    order_id: z.string().uuid(),
+    razorpay_payment_id: z.string(),
+    razorpay_order_id: z.string(),
+    razorpay_signature: z.string(),
+  }))
+  .handler(async ({ data: input, context }) => {
+    const userId = (context as any)?.userId;
+    if (!userId) throw new Error("Unauthorized");
+
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) throw new Error("Razorpay secret not configured");
+
+    const generated_signature = crypto
+      .createHmac("sha256", secret)
+      .update(input.razorpay_order_id + "|" + input.razorpay_payment_id)
+      .digest("hex");
+
+    if (generated_signature !== input.razorpay_signature) {
+      throw new Error("Invalid payment signature");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Update order status
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "processing" })
+      .eq("id", input.order_id);
+
+    // Update payment status
+    await supabaseAdmin
+      .from("payments")
+      .update({ 
+        status: "paid", 
+        transaction_id: input.razorpay_payment_id,
+        metadata: { razorpay_order_id: input.razorpay_order_id, razorpay_signature: input.razorpay_signature }
+      })
+      .eq("order_id", input.order_id);
+
+    return { success: true };
   });
 
 // ─── Authenticated: My Orders ───────────────────────────────────────────────
@@ -218,13 +295,13 @@ export const getAllOrders = createServerFn({ method: "GET" })
 export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator(z.object({
     id: z.string().uuid(),
-    status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]),
+    status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled", "return_initiated", "return_received", "refund_completed"]),
   }))
   .handler(async ({ data: { id, status } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("orders")
-      .update({ status })
+      .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -240,4 +317,55 @@ export const deleteOrder = createServerFn({ method: "POST" })
       .eq("id", id);
     if (error) throw new Error(error.message);
     return { success: true };
+  });
+
+export const initiateOrderReturnOrCancel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id }, context }) => {
+    const userId = (context as any)?.userId;
+    if (!userId) throw new Error("Unauthorized");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    
+    // Get order details
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from("orders")
+      .select("*, payments(*)")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .single();
+      
+    if (orderErr || !order) throw new Error("Order not found");
+
+    if (order.status === "cancelled" || order.status === "return_initiated" || order.status === "return_received" || order.status === "refund_completed") {
+      throw new Error("Cannot modify this order in its current status");
+    }
+
+    const isDelivered = order.status === "delivered";
+    const newStatus = isDelivered ? "return_initiated" : "cancelled";
+
+    // Update order
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", id);
+      
+    // Restore stock if cancelled before shipping
+    if (newStatus === "cancelled") {
+      const { data: items } = await supabaseAdmin.from("order_items").select("*").eq("order_id", id);
+      if (items) {
+        for (const item of items) {
+          if (item.variant_id) {
+             const { data: v } = await supabaseAdmin.from("product_variants").select("stock").eq("id", item.variant_id).single();
+             if (v) await supabaseAdmin.from("product_variants").update({ stock: v.stock + item.quantity }).eq("id", item.variant_id);
+          } else {
+             const { data: p } = await supabaseAdmin.from("products").select("stock").eq("id", item.product_id).single();
+             if (p) await supabaseAdmin.from("products").update({ stock: p.stock + item.quantity }).eq("id", item.product_id);
+          }
+        }
+      }
+    }
+
+    return { success: true, newStatus };
   });

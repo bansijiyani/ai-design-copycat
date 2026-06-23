@@ -50,6 +50,17 @@ export const getAllUsers = createServerFn({ method: "GET" })
     }));
   });
 
+export const promoteToAdmin = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ userId: z.string().uuid() }))
+  .handler(async ({ data: { userId } }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role: "admin" });
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
 // ─── Categories ─────────────────────────────────────────────────────────────
 
 export const getCategories = createServerFn({ method: "GET" })

@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -100,9 +100,35 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
+        <AuthGuard>
+          <Outlet />
+        </AuthGuard>
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { user, isVerified, isAdmin, isAdminMfaVerified, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    const path = router.state.location.pathname;
+
+    // Check custom Registration OTP verification
+    if (user && !isVerified && path !== "/verify-email") {
+      router.navigate({ to: "/verify-email", replace: true });
+      return;
+    }
+
+    // Check Admin MFA verification
+    if (isAdmin && path.startsWith("/admin") && !isAdminMfaVerified && path !== "/admin/verify-mfa") {
+      router.navigate({ to: "/admin/verify-mfa", replace: true });
+      return;
+    }
+  }, [user, isVerified, isAdmin, isAdminMfaVerified, loading, router.state.location.pathname]);
+
+  return <>{children}</>;
 }

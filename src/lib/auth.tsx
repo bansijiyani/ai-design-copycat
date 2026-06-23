@@ -6,6 +6,9 @@ type AuthCtx = {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isVerified: boolean;
+  isAdminMfaVerified: boolean;
+  setAdminMfaVerified: (val: boolean) => void;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string, username: string, fullName: string) => Promise<{ error?: string }>;
@@ -19,6 +22,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAdminMfaVerified, setAdminMfaVerifiedState] = useState(false);
+
+  const setAdminMfaVerified = (val: boolean) => {
+    setAdminMfaVerifiedState(val);
+    if (val) {
+      localStorage.setItem("admin_mfa_verified", "true");
+    } else {
+      localStorage.removeItem("admin_mfa_verified");
+    }
+  };
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
@@ -52,6 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    const storedMfa = localStorage.getItem("admin_mfa_verified");
+    if (storedMfa === "true") {
+      setAdminMfaVerifiedState(true);
+    }
+
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -59,6 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     session,
     isAdmin,
+    isVerified: session?.user?.user_metadata?.is_verified === true,
+    isAdminMfaVerified,
+    setAdminMfaVerified,
     loading,
     async signIn(email, password) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -85,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
     async signOut() {
+      setAdminMfaVerified(false);
       await supabase.auth.signOut();
     },
   };
