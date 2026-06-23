@@ -4,18 +4,20 @@ import { toast } from "sonner";
 import { getProfile, updateProfile } from "@/lib/api/profile.functions";
 import { useAuth } from "@/lib/auth";
 
+import { useQuery } from "@tanstack/react-query";
+
 export const Route = createFileRoute("/profile/")({
   head: () => ({ meta: [{ title: "Personal Details — FizTopz" }] }),
-  loader: async () => {
-    const profile = await getProfile();
-    return { profile };
-  },
   component: ProfilePersonalDetails,
 });
 
 function ProfilePersonalDetails() {
-  const { profile } = Route.useLoaderData();
   const { user } = useAuth();
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => getProfile(),
+    enabled: !!user,
+  });
   
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [username, setUsername] = useState(profile?.username || "");

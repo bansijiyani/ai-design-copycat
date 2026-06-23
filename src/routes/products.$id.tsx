@@ -278,7 +278,7 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
           <div className="mt-4 grid grid-cols-3 gap-3">
             {[
               { i: Truck, t: "Free Shipping", s: "Above ₹999" },
-              { i: RotateCcw, t: "Easy Returns", s: "30-day policy" },
+              { i: RotateCcw, t: "Easy Returns", s: "7-day policy" },
               { i: ShieldCheck, t: "100% Genuine", s: "Verified quality" },
             ].map((f) => (
               <div key={f.t} className="bg-muted/40 p-4 rounded-sm text-center">

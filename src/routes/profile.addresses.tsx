@@ -4,22 +4,26 @@ import { toast } from "sonner";
 import { Plus, Edit2, Trash2, MapPin, Check } from "lucide-react";
 import { getMyAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from "@/lib/api/address.functions";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
+
 export const Route = createFileRoute("/profile/addresses")({
   head: () => ({ meta: [{ title: "Manage Addresses — FizTopz" }] }),
-  loader: async () => {
-    const addresses = await getMyAddresses();
-    return { addresses };
-  },
   component: ProfileAddresses,
 });
 
 function ProfileAddresses() {
-  const { addresses } = Route.useLoaderData();
-  const navigate = Route.useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: addresses = [] } = useQuery({
+    queryKey: ["addresses"],
+    queryFn: () => getMyAddresses(),
+    enabled: !!user,
+  });
   const [editing, setEditing] = useState<any>(null);
   const [busy, setBusy] = useState(false);
 
-  const refresh = () => navigate({ to: ".", replace: true });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["addresses"] });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

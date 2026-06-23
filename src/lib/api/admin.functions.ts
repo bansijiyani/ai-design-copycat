@@ -51,7 +51,7 @@ export const getAllUsers = createServerFn({ method: "GET" })
   });
 
 export const promoteToAdmin = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ userId: z.string().uuid() }))
+  .validator(z.object({ userId: z.string().uuid() }))
   .handler(async ({ data: { userId } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
@@ -75,7 +75,7 @@ export const getCategories = createServerFn({ method: "GET" })
   });
 
 export const createCategory = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
+  .validator(z.object({
     name: z.string().min(1),
     slug: z.string().min(1),
     section: z.string().default("ethnic"),
@@ -94,7 +94,7 @@ export const createCategory = createServerFn({ method: "POST" })
   });
 
 export const updateCategory = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
+  .validator(z.object({
     id: z.string().uuid(),
     name: z.string().min(1).optional(),
     slug: z.string().min(1).optional(),
@@ -113,7 +113,7 @@ export const updateCategory = createServerFn({ method: "POST" })
   });
 
 export const deleteCategory = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin

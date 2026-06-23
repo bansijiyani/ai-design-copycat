@@ -3,7 +3,7 @@ import { z } from "zod";
 import nodemailer from "nodemailer";
 
 export const sendOtpEmail = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
+  .validator(z.object({
     email: z.string().email(),
     type: z.enum(["signup", "admin_login"]),
   }))
@@ -66,7 +66,7 @@ export const sendOtpEmail = createServerFn({ method: "POST" })
   });
 
 export const verifyOtp = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
+  .validator(z.object({
     email: z.string().email(),
     otp: z.string(),
     type: z.enum(["signup", "admin_login"]),

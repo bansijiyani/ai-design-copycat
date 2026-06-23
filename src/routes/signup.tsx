@@ -46,7 +46,7 @@ function SignupPage() {
         <div className="bg-forest text-white p-12 lg:p-20 flex flex-col justify-center items-center text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.5) 20px, rgba(255,255,255,0.5) 21px)" }} />
           <div className="relative">
-            <Logo className="!text-white !text-4xl" />
+            <Logo variant="footer" className="h-40 scale-[2.5] origin-center" />
             <h2 className="font-display text-4xl mt-10">Join FizTopz</h2>
             <p className="mt-5 text-white/80 max-w-sm">Create your account and unlock exclusive deals, early access to new collections, and a seamless shopping experience.</p>
             <ul className="mt-10 space-y-4 text-left max-w-sm mx-auto">

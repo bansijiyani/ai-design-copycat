@@ -32,7 +32,7 @@ export const getSettings = createServerFn({ method: "GET" })
 
 export const updateSetting = createServerFn({ method: "POST" })
   .middleware([requireAdminAuth])
-  .inputValidator(z.object({
+  .validator(z.object({
     key: z.string(),
     value: z.string(),
   }))

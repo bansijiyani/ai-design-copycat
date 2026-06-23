@@ -21,7 +21,7 @@ export const getProducts = createServerFn({ method: "GET" })
   });
 
 export const getProductById = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
@@ -39,7 +39,7 @@ export const getProductById = createServerFn({ method: "GET" })
   });
 
 export const getProductsByCategory = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ slug: z.string() }))
+  .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -97,7 +97,7 @@ const productInputSchema = z.object({
 });
 
 export const createProduct = createServerFn({ method: "POST" })
-  .inputValidator(productInputSchema)
+  .validator(productInputSchema)
   .handler(async ({ data: input }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -156,7 +156,7 @@ export const createProduct = createServerFn({ method: "POST" })
   });
 
 export const updateProduct = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ id: z.string().uuid() }).merge(productInputSchema.partial()))
+  .validator(z.object({ id: z.string().uuid() }).merge(productInputSchema.partial()))
   .handler(async ({ data: { id, variants, images, ...fields } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -216,7 +216,7 @@ export const updateProduct = createServerFn({ method: "POST" })
   });
 
 export const deleteProduct = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Soft delete — just hide the product

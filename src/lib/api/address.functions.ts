@@ -36,7 +36,7 @@ const addressInputSchema = z.object({
 
 export const createAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(addressInputSchema)
+  .validator(addressInputSchema)
   .handler(async ({ data: input, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -62,7 +62,7 @@ export const createAddress = createServerFn({ method: "POST" })
 
 export const updateAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid() }).merge(addressInputSchema.partial()))
+  .validator(z.object({ id: z.string().uuid() }).merge(addressInputSchema.partial()))
   .handler(async ({ data: { id, ...fields }, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -88,7 +88,7 @@ export const updateAddress = createServerFn({ method: "POST" })
 
 export const deleteAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -105,7 +105,7 @@ export const deleteAddress = createServerFn({ method: "POST" })
 
 export const setDefaultAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");

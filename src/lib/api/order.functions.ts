@@ -17,7 +17,7 @@ const orderItemSchema = z.object({
 
 export const createOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({
+  .validator(z.object({
     address_id: z.string().uuid(),
     items: z.array(orderItemSchema).min(1),
     payment_method: z.string().default("cod"),
@@ -186,7 +186,7 @@ export const createOrder = createServerFn({ method: "POST" })
 
 export const verifyRazorpayPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({
+  .validator(z.object({
     order_id: z.string().uuid(),
     razorpay_payment_id: z.string(),
     razorpay_order_id: z.string(),
@@ -253,7 +253,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
 
 export const getOrderById = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");
@@ -302,7 +302,7 @@ export const getAllOrders = createServerFn({ method: "GET" })
   });
 
 export const updateOrderStatus = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
+  .validator(z.object({
     id: z.string().uuid(),
     status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled", "return_initiated", "return_received", "refund_completed"]),
   }))
@@ -317,7 +317,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   });
 
 export const deleteOrder = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
@@ -330,7 +330,7 @@ export const deleteOrder = createServerFn({ method: "POST" })
 
 export const initiateOrderReturnOrCancel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id }, context }) => {
     const userId = (context as any)?.userId;
     if (!userId) throw new Error("Unauthorized");

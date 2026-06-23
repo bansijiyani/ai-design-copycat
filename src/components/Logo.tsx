@@ -1,9 +1,16 @@
 import { Link } from "@tanstack/react-router";
 
-export function Logo({ className = "" }: { className?: string }) {
+interface LogoProps {
+  className?: string;
+  variant?: "header" | "footer";
+}
+
+export function Logo({ className = "h-20 scale-[2.5] origin-left", variant = "header" }: LogoProps) {
+  const imgSrc = variant === "header" ? "/header-logo.png" : "/footer-logo.png";
+  
   return (
-    <Link to="/" className={`font-display text-2xl tracking-tight ${className}`}>
-      Fiz<span className="text-gold">Topz</span>
+    <Link to="/" className="inline-block shrink-0">
+      <img src={imgSrc} alt="FizTopz" className={`w-auto object-contain ${className}`} />
     </Link>
   );
 }

@@ -4,12 +4,11 @@ import { getMyOrders, initiateOrderReturnOrCancel } from "@/lib/api/order.functi
 import { toast } from "sonner";
 import { useState } from "react";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
+
 export const Route = createFileRoute("/profile/orders")({
   head: () => ({ meta: [{ title: "Order History — FizTopz" }] }),
-  loader: async () => {
-    const orders = await getMyOrders();
-    return { orders };
-  },
   component: ProfileOrders,
 });
 
@@ -25,8 +24,13 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; 
 };
 
 function ProfileOrders() {
-  const { orders } = Route.useLoaderData();
-  const router = useRouter();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: orders = [] } = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => getMyOrders(),
+    enabled: !!user,
+  });
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -44,7 +48,7 @@ function ProfileOrders() {
     try {
       const res = await initiateOrderReturnOrCancel({ data: { id: orderId } });
       toast.success(res.newStatus === "return_initiated" ? "Return initiated successfully" : "Order cancelled successfully");
-      router.invalidate();
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to process request");
     } finally {

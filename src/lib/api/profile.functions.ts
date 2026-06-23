@@ -20,7 +20,7 @@ export const getProfile = createServerFn({ method: "GET" })
 
 export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({
+  .validator(z.object({
     full_name: z.string().min(1).optional(),
     username: z.string().min(1).optional(),
     avatar_url: z.string().url().nullable().optional(),

@@ -9,7 +9,7 @@ export function TopBar() {
   return (
     <div className="bg-gold text-promo-foreground text-xs tracking-wide">
       <div className="container mx-auto px-4 py-2.5 text-center">
-        FREE SHIPPING ON ORDERS ABOVE ₹999 &middot; EASY 30-DAY RETURNS &middot; PAN-INDIA DELIVERY
+        FREE SHIPPING ON ORDERS ABOVE ₹999 &middot; EASY 7-DAY RETURNS &middot; PAN-INDIA DELIVERY
       </div>
     </div>
   );

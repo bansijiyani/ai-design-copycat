@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="bg-ink text-white/80 mt-20">
       <div className="container mx-auto px-4 py-16 grid grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
-          <Logo className="!text-white" />
+          <Logo variant="footer" className="h-24 scale-[2.5] origin-left" />
           <p className="mt-4 text-sm leading-relaxed text-white/60 max-w-xs">
             Premium fashion for every occasion. Ethnic roots, western wings — FizTopz dresses India's boldest.
           </p>
