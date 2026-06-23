@@ -39,6 +39,14 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const url = new URL(request.url);
+
+    // Intercept custom API routes that are not natively supported by this version of Tanstack Start
+    if (url.pathname === "/api/cron/refunds") {
+      const { handleCronRefunds } = await import("./lib/api/cron");
+      return handleCronRefunds(request);
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

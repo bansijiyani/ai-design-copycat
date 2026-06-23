@@ -39,7 +39,7 @@ function VerifyAdminMfa() {
     try {
       await sendOtpEmail({ data: { email: user.email, type: "admin_login" } });
       toast.success("2FA code sent to your admin email!");
-      setCountdown(60);
+      setCountdown(30);
     } catch (err: any) {
       toast.error(err.message || "Failed to send code");
     } finally {
@@ -109,7 +109,7 @@ function VerifyAdminMfa() {
                 disabled={sending || countdown > 0}
                 className="w-full bg-muted text-foreground py-2.5 rounded font-semibold hover:bg-muted/80 transition-colors disabled:opacity-50"
               >
-                {sending ? "SENDING..." : countdown > 0 ? \`RESEND IN \${countdown}s\` : "SEND CODE"}
+                {sending ? "SENDING..." : countdown > 0 ? `RESEND IN ${countdown}s` : "SEND CODE"}
               </button>
             </div>
           </form>

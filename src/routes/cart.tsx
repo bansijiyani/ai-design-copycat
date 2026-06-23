@@ -9,6 +9,7 @@ import { useCart } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { getMyAddresses, createAddress } from "@/lib/api/address.functions";
 import { createOrder, verifyRazorpayPayment } from "@/lib/api/order.functions";
+import { getSettings } from "@/lib/api/settings.functions";
 
 declare global {
   interface Window {
@@ -53,12 +54,18 @@ function CartPage() {
     enabled: !!user && checkingOut,
   });
 
+  // Fetch app settings for shipping charge
+  const { data: settings } = useQuery({
+    queryKey: ["app_settings"],
+    queryFn: () => getSettings(),
+  });
+
   // Filter out corrupted items from previous sessions
   const validItems = items.filter((i) => typeof i.price === "number" && !isNaN(i.price));
 
   // Cart uses self-contained item data (price, productName, image)
   const subtotal = validItems.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const shipping = subtotal >= 999 || subtotal === 0 ? 0 : 99;
+  const shipping = subtotal === 0 ? 0 : Number(settings?.flat_shipping_charge ?? 150);
 
   const handleCheckout = async () => {
     if (!user) {

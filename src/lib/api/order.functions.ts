@@ -37,9 +37,18 @@ export const createOrder = createServerFn({ method: "POST" })
       .single();
     if (addrErr || !address) throw new Error("Address not found");
 
-    // 2. Calculate total
+    // 2. Calculate total and fetch shipping settings
     const total = input.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
-    const shipping = total >= 999 ? 0 : 99;
+    
+    const { data: settingsData } = await supabaseAdmin.from("app_settings").select("*");
+    let flatShipping = 150;
+    if (settingsData) {
+      const row = settingsData.find(s => s.key === "flat_shipping_charge");
+      if (row && !isNaN(Number(row.value))) {
+        flatShipping = Number(row.value);
+      }
+    }
+    const shipping = flatShipping;
     const grandTotal = total + shipping;
 
     // 3. Build product snapshots and validate stock

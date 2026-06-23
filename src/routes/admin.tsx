@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Package, ShoppingCart, Users, ArrowLeft, Layers } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ArrowLeft, Layers, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 
@@ -34,6 +34,7 @@ function AdminLayout() {
     { to: "/admin/categories", label: "Categories", icon: Layers },
     { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { to: "/admin/users", label: "Users", icon: Users },
+    { to: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
   return (
