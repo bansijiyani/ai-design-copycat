@@ -75,7 +75,7 @@ function SignupPage() {
                 <label className="text-xs font-semibold">Username</label>
                 <div className="mt-2 relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input value={username} onChange={(e) => setUsername(e.target.value)} required placeholder="username (use fiztopz_admin for admin)" className="w-full pl-10 pr-4 py-3 bg-muted rounded-sm focus:outline-none focus:ring-1 focus:ring-gold" />
+                  <input value={username} onChange={(e) => setUsername(e.target.value)} required placeholder="Enter Your Username" className="w-full pl-10 pr-4 py-3 bg-muted rounded-sm focus:outline-none focus:ring-1 focus:ring-gold" />
                 </div>
               </div>
               <div>
@@ -119,8 +119,6 @@ function SignupPage() {
                 </svg>
                 GOOGLE
               </button>
-
-              <p className="text-xs text-center text-muted-foreground">Tip: Sign up with username <span className="font-semibold text-gold">fiztopz_admin</span> to get admin access.</p>
             </form>
           </div>
         </div>

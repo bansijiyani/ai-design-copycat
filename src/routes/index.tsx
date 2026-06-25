@@ -57,7 +57,7 @@ function Home() {
           <div className="mt-12 pt-8 border-t border-border grid grid-cols-3 gap-6">
             {[
               { v: "10K+", l: "Happy Customers" },
-              { v: "500+", l: "Styles Available" },
+              { v: "100+", l: "Styles Available" },
               { v: "4.9", l: "Average Rating", star: true },
             ].map((s) => (
               <div key={s.l}>
@@ -131,7 +131,7 @@ function Home() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { name: "Priya Sharma", city: "Mumbai", text: '"The quality is absolutely stunning. My Zari saree got so many compliments at the wedding. FizTopz is now my go-to for every occasion!"' },
-            { name: "Arjun Mehta", city: "Delhi", text: '"Ordered a sherwani for my brother\'s wedding. The fabric, the embroidery, the fit — everything was perfect. Delivered in 3 days too!"' },
+            { name: "Arjun Mehta", city: "Delhi", text: '"Ordered a Banarasi saree for my sister\'s wedding. The fabric, the intricate weaving, and the elegant design were absolutely stunning. The quality exceeded my expectations."' },
             { name: "Kavya Nair", city: "Bangalore", text: '"Love how FizTopz blends ethnic and western so effortlessly. The co-ord set I bought is my most-worn piece this season. Obsessed!"' },
           ].map((r, i) => (
             <div key={i} className="bg-card p-7 rounded-sm border border-border/50">
@@ -154,14 +154,14 @@ function Home() {
       {/* NEWSLETTER */}
       <section className="bg-forest text-white py-20">
         <div className="container mx-auto px-4 text-center max-w-xl">
-          <p className="text-xs tracking-[0.3em] text-white/70">NEWSLETTER</p>
+          {/* <p className="text-xs tracking-[0.3em] text-white/70">NEWSLETTER</p> */}
           <h2 className="font-display text-5xl mt-3 text-white">Stay Ahead of the Trend</h2>
-          <p className="mt-5 text-white/70">Get early access to new drops, exclusive offers & style inspiration — straight to your inbox.</p>
+          {/* <p className="mt-5 text-white/70">Get early access to new drops, exclusive offers & style inspiration — straight to your inbox.</p>
           <form className="mt-8 flex flex-col sm:flex-row gap-3">
             <input type="email" placeholder="Enter your email address" className="flex-1 px-5 py-3.5 bg-white/10 border border-white/20 rounded-sm text-white placeholder-white/50 focus:outline-none focus:border-gold" />
             <button type="submit" className="px-8 py-3.5 bg-gold text-white font-semibold tracking-wider text-sm hover:bg-gold/90 transition">SUBSCRIBE</button>
           </form>
-          <p className="text-xs text-white/50 mt-4">No spam. Unsubscribe anytime.</p>
+          <p className="text-xs text-white/50 mt-4">No spam. Unsubscribe anytime.</p> */}
         </div>
       </section>
 

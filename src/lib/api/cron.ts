@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export async function handleCronRefunds(request: Request): Promise<Response> {
   const authHeader = request.headers.get("Authorization");
-  if (authHeader !== \`Bearer \${process.env.CRON_SECRET}\`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response(JSON.stringify({ error: "Unauthorized cron execution" }), { status: 401 });
   }
 
@@ -35,7 +35,7 @@ export async function handleCronRefunds(request: Request): Promise<Response> {
     const elapsedSeconds = (now - updatedAt) / 1e3;
 
     if (elapsedSeconds < delaySeconds) {
-      results.push({ order_id: order.id, status: "skipped", reason: \`Waiting for delay (\${elapsedSeconds}s < \${delaySeconds}s)\` });
+      results.push({ order_id: order.id, status: "skipped", reason: `Waiting for delay (${elapsedSeconds}s < ${delaySeconds}s)` });
       continue;
     }
 
@@ -52,7 +52,7 @@ export async function handleCronRefunds(request: Request): Promise<Response> {
         await supabaseAdmin.from("orders").update({ status: "refund_completed" }).eq("id", order.id);
         results.push({ order_id: order.id, status: "success", refund_amount: refundAmount });
       } catch (err: any) {
-        console.error(\`Refund failed for order \${order.id}:\`, err);
+        console.error(`Refund failed for order ${order.id}:`, err);
         results.push({ order_id: order.id, status: "failed", reason: err.message });
       }
     } else {

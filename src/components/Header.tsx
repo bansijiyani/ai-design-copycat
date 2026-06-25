@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Logo } from "./Logo";
 import { useCart, useWishlist } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
+import { getProducts } from "@/lib/api/product.functions";
 
 export function TopBar() {
   return (
@@ -23,6 +25,16 @@ export function Header() {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const { data: products } = useQuery({
+    queryKey: ["products", "search"],
+    queryFn: () => getProducts(),
+    enabled: searchOpen,
+  });
+
+  const suggestions = query.trim()
+    ? products?.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5)
+    : [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,18 +105,51 @@ export function Header() {
           </nav>
           <div className="flex items-center gap-1">
             {searchOpen ? (
-              <form onSubmit={handleSearch} className="flex items-center border border-border rounded-sm overflow-hidden mr-2">
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Search products..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="bg-transparent text-sm px-3 py-1.5 w-40 outline-none"
-                  onBlur={() => !query && setSearchOpen(false)}
-                />
-                <button type="submit" className="p-1.5 hover:text-gold bg-muted"><Search className="w-4 h-4" /></button>
-              </form>
+              <div className="relative mr-2">
+                <form onSubmit={handleSearch} className="flex items-center border border-border rounded-sm overflow-hidden bg-background">
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Search products..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="bg-transparent text-sm px-3 py-1.5 w-40 outline-none"
+                    onBlur={() => {
+                      // Small delay to allow click on suggestion to register before closing
+                      setTimeout(() => {
+                        if (!query) setSearchOpen(false);
+                      }, 200);
+                    }}
+                  />
+                  <button type="submit" className="p-1.5 hover:text-gold bg-muted"><Search className="w-4 h-4" /></button>
+                </form>
+                {suggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full right-0 mt-1 w-64 bg-background border border-border shadow-lg rounded-sm py-2 z-50">
+                    {suggestions.map(s => (
+                      <Link 
+                        key={s.id} 
+                        to="/products/$id" 
+                        params={{ id: s.id }}
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setQuery("");
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-muted transition"
+                      >
+                        {s.image ? (
+                           <img src={s.image} alt={s.name} className="w-8 h-8 object-cover rounded-sm" />
+                        ) : (
+                           <div className="w-8 h-8 bg-muted rounded-sm" />
+                        )}
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-sm font-medium text-foreground truncate w-44">{s.name}</span>
+                          <span className="text-xs text-muted-foreground">₹{s.price}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : (
               <button onClick={() => setSearchOpen(true)} className="p-2 hover:text-gold transition" aria-label="Search">
                 <Search className="w-5 h-5" />

@@ -359,7 +359,7 @@ function AdminProducts() {
         </div>
       )}
 
-      <style>{`.input{width:100%;padding:0.6rem 0.75rem;background:hsl(var(--muted,0 0% 96%));border:1px solid hsl(var(--border));border-radius:4px;font-size:0.875rem;outline:none}.input:focus{border-color:#c9a14a}`}</style>
+      <style>{`.input{width:100%;padding:0.6rem 0.75rem;background:transparent;border:1px solid #d1d5db;border-radius:4px;font-size:0.875rem;outline:none}.input:focus{border-color:var(--color-gold,#c9a14a)}`}</style>
     </div>
   );
 }

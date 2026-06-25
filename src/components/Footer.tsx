@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Instagram, Facebook, Twitter, Youtube, Phone, Mail } from "lucide-react";
+import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -12,7 +12,7 @@ export function Footer() {
             Premium fashion for every occasion. Ethnic roots, western wings — FizTopz dresses India's boldest.
           </p>
           <div className="flex gap-3 mt-6">
-            {[Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
+            {[Instagram, Facebook].map((Icon, i) => (
               <a key={i} href="#" className="w-9 h-9 grid place-items-center border border-white/20 rounded hover:border-gold hover:text-gold transition">
                 <Icon className="w-4 h-4" />
               </a>

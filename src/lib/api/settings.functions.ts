@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAdminAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getSettings = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -31,7 +30,6 @@ export const getSettings = createServerFn({ method: "GET" })
   });
 
 export const updateSetting = createServerFn({ method: "POST" })
-  .middleware([requireAdminAuth])
   .validator(z.object({
     key: z.string(),
     value: z.string(),

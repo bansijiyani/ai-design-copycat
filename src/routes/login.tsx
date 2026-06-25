@@ -103,8 +103,6 @@ function LoginPage() {
                 </svg>
                 GOOGLE
               </button>
-
-              <p className="text-xs text-center text-muted-foreground">Admin? Sign in with the <span className="text-gold font-semibold">fiztopz_admin</span> account to access the admin panel.</p>
             </form>
           </div>
         </div>
