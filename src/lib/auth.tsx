@@ -94,21 +94,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
     async signUp(email, password, username, fullName) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: siteUrl,
           data: { username, full_name: fullName },
         },
       });
       return { error: error?.message };
     },
     async signInWithGoogle() {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: siteUrl,
         },
       });
       return { error: error?.message };

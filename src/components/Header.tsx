@@ -114,7 +114,7 @@ export function Header() {
                 </div>
               </SheetContent>
             </Sheet>
-            <Logo className="h-10 sm:h-12 lg:h-16 scale-100 lg:scale-150 origin-left" />
+            <Logo className="h-10 sm:h-12 lg:h-20 scale-100 lg:scale-[1.8] origin-left" />
           </div>
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (

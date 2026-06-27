@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 export async function getProducts() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -111,6 +112,8 @@ export async function createProduct({ data: input }: { data: any }) {
     if (iErr) throw new Error(iErr.message);
   }
 
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
   return product;
 }
 
@@ -164,6 +167,8 @@ export async function updateProduct({ data: { id, variants, images, ...fields } 
     }
   }
 
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
   return { success: true };
 }
 
@@ -174,6 +179,9 @@ export async function deleteProduct({ data: { id } }: { data: { id: string } }) 
     .update({ is_active: false })
     .eq("id", id);
   if (error) throw new Error(error.message);
+  
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
   return { success: true };
 }
 

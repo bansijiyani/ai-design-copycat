@@ -137,11 +137,18 @@ export async function createOrder({ data: input }: { data: any }) {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    const rzpOrder = await rzp.orders.create({
-      amount: grandTotal * 100,
-      currency: "INR",
-      receipt: order.id,
-    });
+    let rzpOrder;
+    try {
+      rzpOrder = await rzp.orders.create({
+        amount: grandTotal * 100,
+        currency: "INR",
+        receipt: order.id,
+      });
+    } catch (rzpErr: any) {
+      console.error("Razorpay API Error:", rzpErr);
+      const errMsg = rzpErr?.error?.description || rzpErr?.message || "Razorpay failed to create order.";
+      throw new Error(`Payment Gateway Error: ${errMsg}`);
+    }
 
     razorpayOrderId = rzpOrder.id;
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingBag, ArrowRight, X, Plus, Minus, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -51,6 +51,13 @@ export default function CartPage() {
     queryFn: () => getMyAddresses(),
     enabled: !!user && checkingOut,
   });
+
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0];
+      setSelectedAddressId(defaultAddr.id);
+    }
+  }, [addresses, selectedAddressId]);
 
   // Fetch app settings for shipping charge
   const { data: settings } = useQuery({
