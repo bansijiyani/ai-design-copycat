@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Heart, ShoppingBag, User, ChevronDown, Shield, LogOut } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, ChevronDown, Shield, LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { useCart, useWishlist } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -74,8 +75,47 @@ export function Header() {
     <>
       <TopBar />
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-6">
-          <Logo />
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4 md:gap-6">
+          <div className="flex items-center gap-3">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="lg:hidden p-2 -ml-2 hover:text-gold transition">
+                  <Menu className="w-6 h-6" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] bg-background overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="text-left font-display text-2xl">Menu</SheetTitle>
+                </SheetHeader>
+                <div className="mt-8 flex flex-col gap-6">
+                  {navItems.map((item) => (
+                    <div key={item.label}>
+                      <Link
+                        href={item.search ? { pathname: item.to, query: item.search } : item.to}
+                        className="text-lg font-medium hover:text-gold transition block"
+                      >
+                        {item.label}
+                      </Link>
+                      {item.hasMenu && item.subMenu && (
+                        <div className="mt-4 flex flex-col gap-4 pl-4 border-l-2 border-gold/20">
+                          {item.subMenu.map((sub) => (
+                            <Link
+                              key={sub.label}
+                              href={{ pathname: "/products", query: { category: sub.category } }}
+                              className="text-sm text-muted-foreground hover:text-gold transition"
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Logo className="h-10 sm:h-12 lg:h-16 scale-100 lg:scale-150 origin-left" />
+          </div>
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
               <div key={item.label} className="relative group py-6 -my-6">
