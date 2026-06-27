@@ -1,47 +1,41 @@
-import { createServerFn } from "@tanstack/react-start";
+"use server";
+
 import { z } from "zod";
 
-export const getSettings = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export async function getSettings() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data, error } = await supabaseAdmin
-      .from("app_settings")
-      .select("*");
+  const { data, error } = await supabaseAdmin
+    .from("app_settings")
+    .select("*");
 
-    if (error) {
-      console.error("Failed to load settings:", error);
-      return {};
-    }
+  if (error) {
+    console.error("Failed to load settings:", error);
+    return {};
+  }
 
-    const settings: Record<string, string> = {};
-    if (data) {
-      data.forEach((row: any) => {
-        settings[row.key] = row.value;
-      });
-    }
-    
-    // Default fallback if not in DB yet
-    if (typeof settings.flat_shipping_charge === "undefined") {
-      settings.flat_shipping_charge = "150";
-    }
+  const settings: Record<string, string> = {};
+  if (data) {
+    data.forEach((row: any) => {
+      settings[row.key] = row.value;
+    });
+  }
+  
+  if (typeof settings.flat_shipping_charge === "undefined") {
+    settings.flat_shipping_charge = "150";
+  }
 
-    return settings;
-  });
+  return settings;
+}
 
-export const updateSetting = createServerFn({ method: "POST" })
-  .validator(z.object({
-    key: z.string(),
-    value: z.string(),
-  }))
-  .handler(async ({ data: input }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export async function updateSetting({ data: input }: { data: { key: string; value: string } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { error } = await supabaseAdmin
-      .from("app_settings")
-      .upsert({ key: input.key, value: input.value, updated_at: new Date().toISOString() });
+  const { error } = await supabaseAdmin
+    .from("app_settings")
+    .upsert({ key: input.key, value: input.value, updated_at: new Date().toISOString() });
 
-    if (error) throw new Error(error.message);
+  if (error) throw new Error(error.message);
 
-    return { success: true };
-  });
+  return { success: true };
+}

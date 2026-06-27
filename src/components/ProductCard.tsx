@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { Heart, Eye } from "lucide-react";
 import { useWishlist } from "@/lib/store";
 
@@ -47,7 +47,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
   return (
     <div className="group bg-card rounded-md overflow-hidden border border-border/50 hover:shadow-lg transition">
-      <Link to="/products/$id" params={{ id: product.id }} className="block relative aspect-[3/4] overflow-hidden bg-muted">
+      <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-muted">
         {displayImage ? (
           <img
             src={displayImage}
@@ -78,7 +78,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       </Link>
       <div className="p-4">
         <p className="text-[10px] tracking-[0.15em] text-muted-foreground">{product.brand}</p>
-        <Link to="/products/$id" params={{ id: product.id }}>
+        <Link href={`/products/${product.id}`}>
           <h3 className="font-display text-base mt-1 hover:text-gold transition">{product.name}</h3>
         </Link>
         <div className="mt-2 flex items-baseline gap-2">

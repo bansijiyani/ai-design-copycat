@@ -1,3 +1,4 @@
+"use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
+      
+      if (s?.access_token) {
+        document.cookie = `sb-access-token=${s.access_token}; path=/; max-age=86400; SameSite=Lax; secure`;
+      } else {
+        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
+
       if (s?.user) {
         setTimeout(() => {
           supabase

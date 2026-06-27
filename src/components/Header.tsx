@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, User, ChevronDown, Shield, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
@@ -22,7 +23,7 @@ export function Header() {
   const wishCount = useWishlist((s) => s.ids.length);
   const { user, isAdmin, signOut } = useAuth();
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -39,7 +40,7 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate({ to: "/products", search: { search: query.trim() } as any });
+      router.push(`/products?search=${encodeURIComponent(query.trim())}`);
       setSearchOpen(false);
       setQuery("");
     }
@@ -77,11 +78,8 @@ export function Header() {
             {navItems.map((item) => (
               <div key={item.label} className="relative group py-6 -my-6">
                 <Link
-                  to={item.to as any}
-                  search={item.search as any}
+                  href={item.search ? { pathname: item.to, query: item.search } : item.to}
                   className="text-sm font-medium text-foreground/80 hover:text-gold transition flex items-center gap-1"
-                  activeOptions={{ exact: item.to === "/" }}
-                  activeProps={{ className: "text-gold" }}
                 >
                   {item.label}
                   {item.hasMenu && <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />}
@@ -91,8 +89,7 @@ export function Header() {
                     {item.subMenu.map((sub) => (
                       <Link
                         key={sub.label}
-                        to="/products"
-                        search={{ category: sub.category }}
+                        href={{ pathname: "/products", query: { category: sub.category } }}
                         className="block px-4 py-2 text-sm text-foreground/80 hover:text-gold hover:bg-muted transition"
                       >
                         {sub.label}
@@ -128,8 +125,7 @@ export function Header() {
                     {suggestions.map(s => (
                       <Link 
                         key={s.id} 
-                        to="/products/$id" 
-                        params={{ id: s.id }}
+                        href={`/products/${s.id}`}
                         onClick={() => {
                           setSearchOpen(false);
                           setQuery("");
@@ -155,7 +151,7 @@ export function Header() {
                 <Search className="w-5 h-5" />
               </button>
             )}
-            <Link to="/wishlist" className="p-2 hover:text-gold transition relative" aria-label="Wishlist">
+            <Link href="/wishlist" className="p-2 hover:text-gold transition relative" aria-label="Wishlist">
               <Heart className="w-5 h-5" />
               {wishCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-maroon text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
@@ -163,7 +159,7 @@ export function Header() {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className="p-2 hover:text-gold transition relative" aria-label="Cart">
+            <Link href="/cart" className="p-2 hover:text-gold transition relative" aria-label="Cart">
               <ShoppingBag className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-maroon text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
@@ -172,16 +168,16 @@ export function Header() {
               )}
             </Link>
             {isAdmin && (
-              <Link to="/admin" className="p-2 hover:text-gold transition" aria-label="Admin">
+              <Link href="/admin" className="p-2 hover:text-gold transition" aria-label="Admin">
                 <Shield className="w-5 h-5" />
               </Link>
             )}
             {user ? (
-              <Link to="/profile" className="p-2 hover:text-gold transition" aria-label="Profile">
+              <Link href="/profile" className="p-2 hover:text-gold transition" aria-label="Profile">
                 <User className="w-5 h-5" />
               </Link>
             ) : (
-              <Link to="/login" className="p-2 hover:text-gold transition" aria-label="Account">
+              <Link href="/login" className="p-2 hover:text-gold transition" aria-label="Account">
                 <User className="w-5 h-5" />
               </Link>
             )}

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 
 interface LogoProps {
   className?: string;
@@ -9,7 +9,7 @@ export function Logo({ className = "h-20 scale-[2.5] origin-left", variant = "he
   const imgSrc = variant === "header" ? "/header-logo.png" : "/footer-logo.png";
   
   return (
-    <Link to="/" className="inline-block shrink-0">
+    <Link href="/" className="inline-block shrink-0">
       <img src={imgSrc} alt="FizTopz" className={`w-auto object-contain ${className}`} />
     </Link>
   );

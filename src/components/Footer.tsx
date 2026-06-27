@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { Logo } from "./Logo";
 
@@ -12,15 +12,18 @@ export function Footer() {
             Premium fashion for every occasion. Ethnic roots, western wings — FizTopz dresses India's boldest.
           </p>
           <div className="flex gap-3 mt-6">
-            {[Instagram, Facebook].map((Icon, i) => (
-              <a key={i} href="#" className="w-9 h-9 grid place-items-center border border-white/20 rounded hover:border-gold hover:text-gold transition">
+            {[
+              { Icon: Instagram, href: "https://www.instagram.com/fiztopz_saree/" },
+              { Icon: Facebook, href: "https://www.facebook.com/FizTopz" }
+            ].map(({ Icon, href }, i) => (
+              <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 grid place-items-center border border-white/20 rounded hover:border-gold hover:text-gold transition">
                 <Icon className="w-4 h-4" />
               </a>
             ))}
           </div>
           <div className="mt-6 space-y-2 text-sm text-white/60">
-            <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +91 98765 43210</p>
-            <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> hello@fiztopz.com</p>
+            <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +91 99048 60460</p>
+            <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> fiztopzfeb@gmail.com</p>
           </div>
         </div>
         <div>
@@ -36,7 +39,7 @@ export function Footer() {
           <ul className="space-y-3 text-sm">
             {["sarees", "kurtas", "lehengas", "dresses", "co-ords", "denim"].map((c) => (
               <li key={c}>
-                <Link to="/products" search={{ category: c }} className="hover:text-gold transition capitalize">
+                <Link href={{ pathname: "/products", query: { category: c } }} className="hover:text-gold transition capitalize">
                   {c}
                 </Link>
               </li>
