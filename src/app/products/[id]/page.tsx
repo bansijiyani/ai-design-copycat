@@ -121,11 +121,47 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
     toast.success(`${product.name} added to cart`);
   };
 
+  let descText = product.description || `The ${product.name} is part of our 2026 collection. Made from carefully sourced materials with attention to every detail.`;
+  let descDetails: Record<string, string> | null = null;
+  if (product.description?.startsWith("{")) {
+    try {
+      const obj = JSON.parse(product.description);
+      if (obj.text !== undefined && obj.details !== undefined) {
+        descText = obj.text;
+        descDetails = obj.details;
+      }
+    } catch (e) {}
+  }
+
+  const DescriptionContent = () => (
+    <div className="space-y-6">
+      <p className="whitespace-pre-wrap">{descText}</p>
+      {descDetails && (
+        <div className="space-y-4 pt-2">
+          {descDetails.item && <p><span className="text-foreground">Item:</span> {descDetails.item}</p>}
+          {descDetails.fabric && <p><span className="text-foreground">Fabric :</span> {descDetails.fabric}</p>}
+          {descDetails.work_technique && <p><span className="text-foreground">Technique for Work :</span> {descDetails.work_technique}</p>}
+          {descDetails.value_edition && <p><span className="text-foreground">Technique For value edition :</span> {descDetails.value_edition}</p>}
+          {descDetails.style && <p><span className="text-foreground">Style :</span> {descDetails.style}</p>}
+          {descDetails.length && <p><span className="text-foreground">Length :</span> {descDetails.length}</p>}
+          {descDetails.width && <p><span className="text-foreground">Width :</span> {descDetails.width}</p>}
+          {descDetails.wash_care && <p><span className="text-foreground">Wash Care :</span> {descDetails.wash_care}</p>}
+        </div>
+      )}
+    </div>
+  );
+
   const accordions = [
-    { title: "Product Highlights", content: "Premium fabric with hand-finished details. Crafted by skilled artisans. Designed for comfort and elegance." },
-    { title: "Description", content: product.description || `The ${product.name} is part of our 2026 collection. Made from carefully sourced materials with attention to every detail.` },
-    { title: "Care Instructions", content: "Dry clean only. Store in a cool, dry place. Iron on low heat. Avoid direct sunlight." },
+    { title: "Product Description", content: <DescriptionContent /> },
+    { title: "Care Instructions", content: <p>Dry clean only. Store in a cool, dry place. Iron on low heat. Avoid direct sunlight.</p> },
   ];
+
+  if (descDetails?.return_exchange) {
+    accordions.push({
+      title: "Return and Exchange",
+      content: <p className="whitespace-pre-wrap">{descDetails.return_exchange}</p>
+    });
+  }
 
   const reviews = [
     { name: "Priya Sharma", date: "12 May 2026", rating: 5, text: "Absolutely stunning! The work is so intricate and quality is top-notch. Got so many compliments at my cousin's wedding. Will definitely buy again!" },
@@ -177,7 +213,12 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
         {/* info */}
         <div>
           <p className="text-xs tracking-[0.2em] text-muted-foreground">{product.brand}</p>
-          <h1 className="font-display text-4xl mt-2">{product.name}</h1>
+          <div className="flex flex-wrap items-center gap-4 mt-2">
+            <h1 className="font-display text-4xl">{product.name}</h1>
+            {(stockAvailable === 0 || product.is_active === false) && (
+              <span className="text-xs font-sans font-bold tracking-widest bg-zinc-800 text-white px-3 py-1 rounded-sm uppercase">Out of Stock</span>
+            )}
+          </div>
           <div className="flex items-center gap-3 mt-3 text-sm">
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -256,7 +297,10 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
             </button>
           </div>
 
-          <button className="w-full mt-3 border-2 border-gold text-gold py-4 font-semibold tracking-wider text-sm hover:bg-gold hover:text-white transition">
+          <button 
+            disabled={stockAvailable === 0 || product.is_active === false}
+            className="w-full mt-3 border-2 border-gold text-gold py-4 font-semibold tracking-wider text-sm hover:bg-gold hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gold"
+          >
             BUY NOW
           </button>
 
@@ -305,7 +349,7 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
   );
 }
 
-function Accordion({ title, content }: { title: string; content: string }) {
+function Accordion({ title, content }: { title: string; content: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-border">
@@ -313,7 +357,7 @@ function Accordion({ title, content }: { title: string; content: string }) {
         <span className="flex items-center gap-2"><span className="text-gold">●</span> {title}</span>
         <ChevronDown className={`w-4 h-4 transition ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <p className="text-sm text-muted-foreground pb-4">{content}</p>}
+      {open && <div className="text-sm text-muted-foreground pb-4">{content}</div>}
     </div>
   );
 }

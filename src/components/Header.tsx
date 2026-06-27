@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, User, ChevronDown, Shield, LogOut } from "lucide-react";

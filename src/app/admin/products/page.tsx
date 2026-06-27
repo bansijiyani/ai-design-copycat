@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getAdminProducts, createProduct, updateProduct, deleteProduct } from "@/lib/api/product.functions";
 import { getCategories } from "@/lib/api/admin.functions";
 import { CloudinaryUpload } from "@/components/CloudinaryUpload";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 
@@ -39,6 +40,16 @@ type ProductForm = {
   description: string;
   is_active: boolean;
   variants: VariantForm[];
+  item: string;
+  fabric: string;
+  work_technique: string;
+  value_edition: string;
+  style: string;
+  length: string;
+  width: string;
+  wash_care: string;
+  return_exchange: string;
+  _isCustomReturn?: boolean;
 };
 
 const emptyVariant: VariantForm = {
@@ -49,6 +60,11 @@ const emptyProduct: ProductForm = {
   name: "", brand: "FIZTOPZ", category: "sarees", category_id: null, section: "ethnic",
   price: 0, old_price: null, stock: 0, sku: "", image: "", images: [], description: "", is_active: true,
   variants: [],
+  item: "", fabric: "", work_technique: "", value_edition: "", style: "", 
+  length: "5.5 Meter 0.80 Meter Blouse (Unstitched)", 
+  width: "44 inch (approximate)", 
+  wash_care: "First Wash Dry Clean (Steam or Iron with the cool press)",
+  return_exchange: "",
 };
 
 export default function AdminProducts() {
@@ -69,6 +85,27 @@ export default function AdminProducts() {
   const openNew = () => setEditing({ ...emptyProduct });
 
   const openEdit = (p: any) => {
+    let parsedDesc = p.description ?? "";
+    let details = { 
+      item: "", fabric: "", work_technique: "", value_edition: "", style: "", 
+      length: "5.5 Meter 0.80 Meter Blouse (Unstitched)", 
+      width: "44 inch (approximate)", 
+      wash_care: "First Wash Dry Clean (Steam or Iron with the cool press)",
+      return_exchange: "",
+      _isCustomReturn: false,
+    };
+    if (parsedDesc.startsWith("{")) {
+      try {
+        const obj = JSON.parse(parsedDesc);
+        if (obj.text !== undefined && obj.details !== undefined) {
+          parsedDesc = obj.text;
+          details = { ...details, ...obj.details };
+        }
+      } catch (e) {
+        // Not JSON
+      }
+    }
+
     setEditing({
       id: p.id,
       name: p.name,
@@ -82,7 +119,9 @@ export default function AdminProducts() {
       sku: p.sku ?? "",
       image: p.image ?? "",
       images: p.product_images?.map((pi: any) => pi.url) ?? [],
-      description: p.description ?? "",
+      description: parsedDesc,
+      ...details,
+      _isCustomReturn: details.return_exchange ? !["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange"].includes(details.return_exchange) : false,
       is_active: p.is_active,
       variants: (p.variants ?? []).map((v: any) => ({
         id: v.id,
@@ -113,7 +152,20 @@ export default function AdminProducts() {
         stock: editing.stock,
         sku: editing.sku || null,
         image: editing.image || editing.images?.[0] || null,
-        description: editing.description || null,
+        description: JSON.stringify({
+          text: editing.description,
+          details: {
+            item: editing.item,
+            fabric: editing.fabric,
+            work_technique: editing.work_technique,
+            value_edition: editing.value_edition,
+            style: editing.style,
+            length: editing.length,
+            width: editing.width,
+            wash_care: editing.wash_care,
+            return_exchange: editing.return_exchange,
+          }
+        }),
         is_active: editing.is_active,
         images: editing.images,
         variants: editing.variants.map((v) => ({
@@ -288,6 +340,51 @@ export default function AdminProducts() {
               </Field>
 
               <Field label="Description" className="col-span-2"><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="input min-h-24" /></Field>
+
+              <div className="col-span-2 font-semibold text-sm mt-4 pb-2 border-b border-border">Product Details</div>
+              <Field label="Item"><input value={editing.item} onChange={(e) => setEditing({ ...editing, item: e.target.value })} className="input" /></Field>
+              <Field label="Fabric"><input value={editing.fabric} onChange={(e) => setEditing({ ...editing, fabric: e.target.value })} className="input" /></Field>
+              <Field label="Technique for Work"><input value={editing.work_technique} onChange={(e) => setEditing({ ...editing, work_technique: e.target.value })} className="input" /></Field>
+              <Field label="Technique for value edition"><input value={editing.value_edition} onChange={(e) => setEditing({ ...editing, value_edition: e.target.value })} className="input" /></Field>
+              <Field label="Style"><input value={editing.style} onChange={(e) => setEditing({ ...editing, style: e.target.value })} className="input" /></Field>
+              <Field label="Length"><input value={editing.length} onChange={(e) => setEditing({ ...editing, length: e.target.value })} className="input" /></Field>
+              <Field label="Width"><input value={editing.width} onChange={(e) => setEditing({ ...editing, width: e.target.value })} className="input" /></Field>
+              <Field label="Wash Care"><input value={editing.wash_care} onChange={(e) => setEditing({ ...editing, wash_care: e.target.value })} className="input" /></Field>
+              <Field label="Return and Exchange">
+                <Select
+                  value={
+                    (editing._isCustomReturn || (!["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange", ""].includes(editing.return_exchange)))
+                      ? "custom"
+                      : editing.return_exchange
+                  }
+                  onValueChange={(val) => {
+                    if (val === "custom") {
+                      setEditing({ ...editing, return_exchange: "", _isCustomReturn: true });
+                    } else {
+                      setEditing({ ...editing, return_exchange: val, _isCustomReturn: false });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select or type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Easy Return and exchange within 2 days from delivery.">Easy Return and exchange within 2 days from delivery.</SelectItem>
+                    <SelectItem value="No return only exchange">No return only exchange</SelectItem>
+                    <SelectItem value="no return and exchange">no return and exchange</SelectItem>
+                    <SelectItem value="custom">Custom Policy...</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(editing._isCustomReturn || (!["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange", ""].includes(editing.return_exchange))) && (
+                  <input 
+                    className="input mt-2" 
+                    value={editing.return_exchange} 
+                    onChange={(e) => setEditing({ ...editing, return_exchange: e.target.value })} 
+                    placeholder="Type custom policy..."
+                    autoFocus
+                  />
+                )}
+              </Field>
 
               {/* VARIANTS */}
               <div className="col-span-2 border-t border-border pt-4 mt-2">

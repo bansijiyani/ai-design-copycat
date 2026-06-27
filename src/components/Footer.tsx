@@ -50,7 +50,17 @@ export function Footer() {
           <h4 className="text-xs tracking-[0.2em] text-white mb-5">HELP</h4>
           <ul className="space-y-3 text-sm">
             {["Shipping Policy", "Returns & Exchanges", "Size Guide", "Track Your Order", "Contact Us", "FAQs"].map((l) => (
-              <li key={l}><a href="#" className="hover:text-gold transition">{l}</a></li>
+              <li key={l}>
+                {l === "Size Guide" ? (
+                  <Link href="/size-guide" className="hover:text-gold transition">{l}</Link>
+                ) : l === "Shipping Policy" ? (
+                  <Link href="/shipping-policy" className="hover:text-gold transition">{l}</Link>
+                ) : l === "Returns & Exchanges" ? (
+                  <Link href="/returns-exchanges" className="hover:text-gold transition">{l}</Link>
+                ) : (
+                  <a href="#" className="hover:text-gold transition">{l}</a>
+                )}
+              </li>
             ))}
           </ul>
         </div>

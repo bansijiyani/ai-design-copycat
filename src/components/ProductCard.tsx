@@ -8,9 +8,11 @@ type ProductCardData = {
   brand: string;
   price: number;
   old_price?: number | null;
+  stock?: number;
   image?: string | null;
   is_active?: boolean;
   product_images?: { url: string }[];
+  variants?: any[];
   // Legacy fields for backward compat
   oldPrice?: number;
   badges?: string[];
@@ -32,13 +34,23 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       : 0;
 
   // Derive badges
-  const badges: string[] = product.badges ?? [];
-  if (!badges.length) {
+  const badges: string[] = product.badges ? [...product.badges] : [];
+  
+  const totalStock = product.variants && product.variants.length > 0
+    ? product.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
+    : (product.stock || 0);
+
+  const isOutOfStock = totalStock === 0 || product.is_active === false;
+
+  if (isOutOfStock) {
+    if (!badges.includes("OUT OF STOCK")) badges.push("OUT OF STOCK");
+  } else if (!badges.length) {
     if (discount > 0) badges.push(`${discount}% OFF`);
     if (product.isNew) badges.push("NEW");
   }
 
   const badgeColor = (b: string) =>
+    b === "OUT OF STOCK" ? "bg-zinc-800 text-white" :
     b.includes("OFF") ? "bg-maroon text-white" :
     b === "NEW" ? "bg-forest text-white" :
     b === "BESTSELLER" ? "bg-gold text-white" :
