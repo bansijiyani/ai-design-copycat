@@ -24,6 +24,9 @@ export async function getSettings() {
   if (typeof settings.flat_shipping_charge === "undefined") {
     settings.flat_shipping_charge = "150";
   }
+  if (typeof settings.free_shipping_threshold === "undefined") {
+    settings.free_shipping_threshold = "999";
+  }
 
   return settings;
 }

@@ -48,8 +48,10 @@ type ProductForm = {
   length: string;
   width: string;
   wash_care: string;
-  return_exchange: string;
+  return_window: string;
   _isCustomReturn?: boolean;
+  exchange_window: string;
+  _isCustomExchange?: boolean;
 };
 
 const emptyVariant: VariantForm = {
@@ -64,7 +66,8 @@ const emptyProduct: ProductForm = {
   length: "5.5 Meter 0.80 Meter Blouse (Unstitched)", 
   width: "44 inch (approximate)", 
   wash_care: "First Wash Dry Clean (Steam or Iron with the cool press)",
-  return_exchange: "",
+  return_window: "7 Days",
+  exchange_window: "7 Days",
 };
 
 export default function AdminProducts() {
@@ -91,8 +94,10 @@ export default function AdminProducts() {
       length: "5.5 Meter 0.80 Meter Blouse (Unstitched)", 
       width: "44 inch (approximate)", 
       wash_care: "First Wash Dry Clean (Steam or Iron with the cool press)",
-      return_exchange: "",
+      return_window: "7 Days",
       _isCustomReturn: false,
+      exchange_window: "7 Days",
+      _isCustomExchange: false,
     };
     if (parsedDesc.startsWith("{")) {
       try {
@@ -121,7 +126,10 @@ export default function AdminProducts() {
       images: p.product_images?.map((pi: any) => pi.url) ?? [],
       description: parsedDesc,
       ...details,
-      _isCustomReturn: details.return_exchange ? !["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange"].includes(details.return_exchange) : false,
+      return_window: details.return_window || "7 Days",
+      _isCustomReturn: details.return_window ? !["7 Days", "10 Days", "15 Days", "30 Days", "No Return"].includes(details.return_window) : false,
+      exchange_window: details.exchange_window || "7 Days",
+      _isCustomExchange: details.exchange_window ? !["7 Days", "10 Days", "15 Days", "30 Days", "No Exchange"].includes(details.exchange_window) : false,
       is_active: p.is_active,
       variants: (p.variants ?? []).map((v: any) => ({
         id: v.id,
@@ -163,7 +171,8 @@ export default function AdminProducts() {
             length: editing.length,
             width: editing.width,
             wash_care: editing.wash_care,
-            return_exchange: editing.return_exchange,
+            return_window: editing.return_window,
+            exchange_window: editing.exchange_window,
           }
         }),
         is_active: editing.is_active,
@@ -350,37 +359,77 @@ export default function AdminProducts() {
               <Field label="Length"><input value={editing.length} onChange={(e) => setEditing({ ...editing, length: e.target.value })} className="input" /></Field>
               <Field label="Width"><input value={editing.width} onChange={(e) => setEditing({ ...editing, width: e.target.value })} className="input" /></Field>
               <Field label="Wash Care"><input value={editing.wash_care} onChange={(e) => setEditing({ ...editing, wash_care: e.target.value })} className="input" /></Field>
-              <Field label="Return and Exchange">
+              <Field label="Return Window">
                 <Select
                   value={
-                    (editing._isCustomReturn || (!["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange", ""].includes(editing.return_exchange)))
+                    (editing._isCustomReturn || (!["7 Days", "10 Days", "15 Days", "30 Days", "No Return", ""].includes(editing.return_window)))
                       ? "custom"
-                      : editing.return_exchange
+                      : editing.return_window
                   }
                   onValueChange={(val) => {
                     if (val === "custom") {
-                      setEditing({ ...editing, return_exchange: "", _isCustomReturn: true });
+                      setEditing({ ...editing, return_window: "", _isCustomReturn: true });
                     } else {
-                      setEditing({ ...editing, return_exchange: val, _isCustomReturn: false });
+                      setEditing({ ...editing, return_window: val, _isCustomReturn: false });
                     }
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select or type..." />
+                    <SelectValue placeholder="Select Return Window..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Easy Return and exchange within 2 days from delivery.">Easy Return and exchange within 2 days from delivery.</SelectItem>
-                    <SelectItem value="No return only exchange">No return only exchange</SelectItem>
-                    <SelectItem value="no return and exchange">no return and exchange</SelectItem>
+                    <SelectItem value="7 Days">7 Days</SelectItem>
+                    <SelectItem value="10 Days">10 Days</SelectItem>
+                    <SelectItem value="15 Days">15 Days</SelectItem>
+                    <SelectItem value="30 Days">30 Days</SelectItem>
+                    <SelectItem value="No Return">No Return</SelectItem>
                     <SelectItem value="custom">Custom Policy...</SelectItem>
                   </SelectContent>
                 </Select>
-                {(editing._isCustomReturn || (!["Easy Return and exchange within 2 days from delivery.", "No return only exchange", "no return and exchange", ""].includes(editing.return_exchange))) && (
+                {(editing._isCustomReturn || (!["7 Days", "10 Days", "15 Days", "30 Days", "No Return", ""].includes(editing.return_window))) && (
                   <input 
                     className="input mt-2" 
-                    value={editing.return_exchange} 
-                    onChange={(e) => setEditing({ ...editing, return_exchange: e.target.value })} 
-                    placeholder="Type custom policy..."
+                    value={editing.return_window} 
+                    onChange={(e) => setEditing({ ...editing, return_window: e.target.value })} 
+                    placeholder="Type custom return policy..."
+                    autoFocus
+                  />
+                )}
+              </Field>
+
+              <Field label="Exchange Window">
+                <Select
+                  value={
+                    (editing._isCustomExchange || (!["7 Days", "10 Days", "15 Days", "30 Days", "No Exchange", ""].includes(editing.exchange_window)))
+                      ? "custom"
+                      : editing.exchange_window
+                  }
+                  onValueChange={(val) => {
+                    if (val === "custom") {
+                      setEditing({ ...editing, exchange_window: "", _isCustomExchange: true });
+                    } else {
+                      setEditing({ ...editing, exchange_window: val, _isCustomExchange: false });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Exchange Window..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7 Days">7 Days</SelectItem>
+                    <SelectItem value="10 Days">10 Days</SelectItem>
+                    <SelectItem value="15 Days">15 Days</SelectItem>
+                    <SelectItem value="30 Days">30 Days</SelectItem>
+                    <SelectItem value="No Exchange">No Exchange</SelectItem>
+                    <SelectItem value="custom">Custom Policy...</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(editing._isCustomExchange || (!["7 Days", "10 Days", "15 Days", "30 Days", "No Exchange", ""].includes(editing.exchange_window))) && (
+                  <input 
+                    className="input mt-2" 
+                    value={editing.exchange_window} 
+                    onChange={(e) => setEditing({ ...editing, exchange_window: e.target.value })} 
+                    placeholder="Type custom exchange policy..."
                     autoFocus
                   />
                 )}

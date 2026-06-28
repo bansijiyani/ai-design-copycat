@@ -10,6 +10,8 @@ export type CartItem = {
   price: number;        // locked-in price at time of add
   productName: string;  // locked-in name
   image?: string;       // locked-in image URL
+  stock?: number;
+  isActive?: boolean;
 };
 
 type CartState = {
@@ -17,6 +19,7 @@ type CartState = {
   add: (item: CartItem) => void;
   remove: (id: string, variantId?: string) => void;
   updateQty: (id: string, qty: number, variantId?: string) => void;
+  syncPrices: (products: any[]) => void;
   clear: () => void;
 };
 
@@ -61,6 +64,62 @@ export const useCart = create<CartState>()(
               : i,
           ),
         })),
+      syncPrices: (products) => set((s) => {
+        let changed = false;
+        const newItems = s.items.map((i) => {
+          const dbProduct = products.find((p) => p.id === i.id);
+          if (!dbProduct) {
+            if (i.stock !== 0 || i.isActive !== false) {
+              changed = true;
+              return { ...i, stock: 0, isActive: false };
+            }
+            return i;
+          }
+          
+          let newPrice = dbProduct.price;
+          let newVariantId = i.variantId;
+          let newStock = dbProduct.stock ?? 0;
+          let newIsActive = dbProduct.is_active ?? true;
+
+          if (i.variantId || i.color || i.size) {
+            let v = undefined;
+            if (i.variantId && dbProduct.variants) {
+              v = dbProduct.variants.find((v: any) => v.id === i.variantId);
+            }
+            
+            // Auto-heal variant ID if Admin deleted and recreated it
+            if (!v && dbProduct.variants) {
+              v = dbProduct.variants.find((v: any) => 
+                (!i.color || v.color_name === i.color) && 
+                (!i.size || v.size === i.size)
+              );
+            }
+
+            if (v) {
+              if (v.price_override !== null) newPrice = v.price_override;
+              newVariantId = v.id;
+              newStock = v.stock ?? 0;
+              newIsActive = v.is_active ?? true;
+            } else {
+              // Variant deleted and not replaceable
+              newStock = 0;
+              newIsActive = false;
+            }
+          }
+          
+          if (
+            newPrice !== i.price || 
+            newVariantId !== i.variantId || 
+            newStock !== i.stock || 
+            newIsActive !== i.isActive
+          ) {
+            changed = true;
+            return { ...i, price: newPrice, variantId: newVariantId, stock: newStock, isActive: newIsActive };
+          }
+          return i;
+        });
+        return changed ? { items: newItems } : {};
+      }),
       clear: () => set({ items: [] }),
     }),
     { name: "fiztopz-cart" },

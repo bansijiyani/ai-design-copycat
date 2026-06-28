@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Heart, Share2, ShoppingBag, Truck, RotateCcw, ShieldCheck, ChevronDown, Check, Star, Plus, Minus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Share2, ShoppingBag, Truck, RotateCcw, ShieldCheck, ChevronDown, Check, Star, Plus, Minus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductById, getProducts } from "@/lib/api/product.functions";
+import { getSettings } from "@/lib/api/settings.functions";
 import { useCart, useWishlist } from "@/lib/store";
 export default function PDP() {
   const { id } = useParams() as { id: string };
@@ -85,10 +86,16 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
       (!v.size || v.size === selectedSize),
   );
 
-  const effectivePrice = selectedVariant?.price_override ?? Number(product.price);
+  const effectivePrice = selectedVariant?.price_override ?? (product.price || 0);
   const oldPrice = Number(product.old_price ?? 0);
   const discount = oldPrice > effectivePrice ? Math.round(((oldPrice - effectivePrice) / oldPrice) * 100) : 0;
   const stockAvailable = selectedVariant ? selectedVariant.stock : product.stock;
+
+  const { data: settings } = useQuery({
+    queryKey: ["app_settings"],
+    queryFn: () => getSettings(),
+  });
+  const freeShippingThreshold = settings?.free_shipping_threshold ?? "999";
 
   // Images: prefer variant images, then product_images, fall back to image field or placeholder
   const variantImages = selectedVariant?.images?.length ? selectedVariant.images : [];
@@ -119,6 +126,12 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
       image: images[0],
     });
     toast.success(`${product.name} added to cart`);
+  };
+
+  const router = useRouter();
+  const handleBuyNow = () => {
+    handleAddToCart();
+    router.push("/cart");
   };
 
   let descText = product.description || `The ${product.name} is part of our 2026 collection. Made from carefully sourced materials with attention to every detail.`;
@@ -156,10 +169,30 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
     { title: "Care Instructions", content: <p>Dry clean only. Store in a cool, dry place. Iron on low heat. Avoid direct sunlight.</p> },
   ];
 
-  if (descDetails?.return_exchange) {
+  if (descDetails?.return_window || descDetails?.exchange_window || descDetails?.return_exchange) {
+    const rw = descDetails.return_window || (descDetails.return_exchange?.includes("No return") ? "No Return" : "7 Days");
+    const ew = descDetails.exchange_window || (descDetails.return_exchange?.includes("no return and exchange") ? "No Exchange" : "7 Days");
+    
     accordions.push({
       title: "Return and Exchange",
-      content: <p className="whitespace-pre-wrap">{descDetails.return_exchange}</p>
+      content: (
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              {rw !== 'No Return' ? <Check className="w-4 h-4 text-green-600"/> : <X className="w-4 h-4 text-maroon"/>} 
+              Return {rw !== 'No Return' ? 'Available' : 'Not Available'}
+            </h3>
+            {rw !== 'No Return' && <p className="text-sm mt-1">Return Window: {rw}</p>}
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              {ew !== 'No Exchange' ? <Check className="w-4 h-4 text-green-600"/> : <X className="w-4 h-4 text-maroon"/>} 
+              Exchange {ew !== 'No Exchange' ? 'Available' : 'Not Available'}
+            </h3>
+            {ew !== 'No Exchange' && <p className="text-sm mt-1">Exchange Window: {ew}</p>}
+          </div>
+        </div>
+      )
     });
   }
 
@@ -197,7 +230,7 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
         </div>
 
         {/* main image */}
-        <div className="relative aspect-[4/5] rounded-sm overflow-hidden bg-black">
+        <div className="relative aspect-[4/6] rounded-sm overflow-hidden bg-black">
           {images[imgIdx]?.match(/\.(mp4|webm|mov)(\?.*)?$/i) ? (
             <video src={images[imgIdx]} className="w-full h-full object-cover" autoPlay loop muted playsInline />
           ) : (
@@ -298,23 +331,24 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
           </div>
 
           <button 
+            onClick={handleBuyNow}
             disabled={stockAvailable === 0 || product.is_active === false}
             className="w-full mt-3 border-2 border-gold text-gold py-4 font-semibold tracking-wider text-sm hover:bg-gold hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gold"
           >
             BUY NOW
           </button>
 
-          <div className="mt-6 p-5 bg-muted/40 rounded-sm">
+          {/* <div className="mt-6 p-5 bg-muted/40 rounded-sm">
             <p className="text-sm font-semibold mb-3">Check Delivery</p>
             <div className="flex gap-2">
               <input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter pincode" className="flex-1 px-4 py-2.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:border-gold" />
               <button className="px-6 bg-gold text-white text-sm font-semibold rounded-sm hover:bg-gold/90">Check</button>
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-4 grid grid-cols-3 gap-3">
             {[
-              { i: Truck, t: "Free Shipping", s: "Above ₹999" },
+              { i: Truck, t: "Free Shipping", s: `Above ₹${freeShippingThreshold}` },
               { i: RotateCcw, t: "Easy Returns", s: "7-day policy" },
               { i: ShieldCheck, t: "100% Genuine", s: "Verified quality" },
             ].map((f) => (

@@ -54,6 +54,13 @@ export async function promoteToAdmin({ data: { userId } }: { data: { userId: str
   return { success: true };
 }
 
+export async function deleteUserAdmin({ data: { userId } }: { data: { userId: string } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (error) throw new Error(error.message);
+  return { success: true };
+}
+
 export async function getCategories() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin

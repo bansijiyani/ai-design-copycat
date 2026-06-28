@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { sendOtpEmail, verifyOtp } from "@/lib/api/auth.functions";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ export default function VerifyEmail() {
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [hasAutoSent, setHasAutoSent] = useState(false);
+  const autoSentRef = useRef(false);
 
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -54,11 +54,11 @@ export default function VerifyEmail() {
   };
 
   useEffect(() => {
-    if (user?.email && !isVerified && !hasAutoSent) {
-      setHasAutoSent(true);
+    if (user?.email && !isVerified && !autoSentRef.current) {
+      autoSentRef.current = true;
       handleSendOtp(user.email);
     }
-  }, [user, isVerified, hasAutoSent]);
+  }, [user, isVerified]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +88,7 @@ export default function VerifyEmail() {
       if (error) throw error;
       toast.success("Email address updated!");
       setIsChangingEmail(false);
-      setHasAutoSent(false); // will trigger auto-send to new email
+      autoSentRef.current = false; // will trigger auto-send to new email
       setOtp("");
     } catch (err: any) {
       toast.error(err.message || "Failed to update email");

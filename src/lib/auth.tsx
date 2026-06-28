@@ -59,18 +59,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.session.user.id)
-          .eq("role", "admin")
-          .maybeSingle()
-          .then(({ data: r }) => setIsAdmin(!!r));
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        // Token is invalid or user was deleted
+        supabase.auth.signOut();
+        setSession(null);
+        setIsAdmin(false);
+        setLoading(false);
+      } else {
+        // User is valid, grab the full session for tokens
+        supabase.auth.getSession().then(({ data }) => {
+          setSession(data.session);
+          if (data.session?.user) {
+            supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", data.session.user.id)
+              .eq("role", "admin")
+              .maybeSingle()
+              .then(({ data: r }) => setIsAdmin(!!r));
+          }
+          setLoading(false);
+        });
       }
-      setLoading(false);
     });
 
     const storedMfa = localStorage.getItem("admin_mfa_verified");
@@ -85,11 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     session,
     isAdmin,
-    isVerified: session?.user?.user_metadata?.is_verified === true,
-    isAdminMfaVerified,
+    isVerified: session?.user?.user_metadata?.is_verified === true || session?.user?.app_metadata?.providers?.includes('google'),
+    isAdminMfaVerified: isAdminMfaVerified || session?.user?.app_metadata?.providers?.includes('google'),
     setAdminMfaVerified,
     loading,
     async signIn(email, password) {
+      setAdminMfaVerified(false); // Force OTP on new manual login
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message };
     },

@@ -6,7 +6,7 @@ import { RefreshCcw } from "lucide-react";
 
 export default function ReturnsExchangesPage() {
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex flex-col font-serif">
+    <div className="min-h-screen bg-[#FDFBF7] flex flex-col">
       <Header />
       
       <main className="flex-grow pt-32 pb-20">

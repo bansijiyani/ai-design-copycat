@@ -26,14 +26,14 @@ export function Footer() {
             <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> fiztopzfeb@gmail.com</p>
           </div>
         </div>
-        <div>
+        {/* <div>
           <h4 className="text-xs tracking-[0.2em] text-white mb-5">COMPANY</h4>
           <ul className="space-y-3 text-sm">
             {["About Us", "Our Story", "Careers", "Press", "Blog"].map((l) => (
               <li key={l}><a href="#" className="hover:text-gold transition">{l}</a></li>
             ))}
           </ul>
-        </div>
+        </div> */}
         <div>
           <h4 className="text-xs tracking-[0.2em] text-white mb-5">SHOP</h4>
           <ul className="space-y-3 text-sm">
@@ -57,6 +57,10 @@ export function Footer() {
                   <Link href="/shipping-policy" className="hover:text-gold transition">{l}</Link>
                 ) : l === "Returns & Exchanges" ? (
                   <Link href="/returns-exchanges" className="hover:text-gold transition">{l}</Link>
+                ) : l === "Track Your Order" ? (
+                  <Link href="/profile/orders" className="hover:text-gold transition">{l}</Link>
+                ) : l === "Contact Us" ? (
+                  <Link href="/contact" className="hover:text-gold transition">{l}</Link>
                 ) : (
                   <a href="#" className="hover:text-gold transition">{l}</a>
                 )}

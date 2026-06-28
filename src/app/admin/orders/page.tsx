@@ -7,7 +7,7 @@ import { getAllOrders, updateOrderStatus, deleteOrder } from "@/lib/api/order.fu
 
 
 
-const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "return_initiated", "return_received", "refund_completed"] as const;
+const STATUSES = ["pending", "processing", "packed", "shipped", "out_for_delivery", "delivered", "cancelled", "return_initiated", "return_received", "refund_completed"] as const;
 
 export default function AdminOrders() {
   const qc = useQueryClient();

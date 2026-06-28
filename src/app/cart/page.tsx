@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { getMyAddresses, createAddress } from "@/lib/api/address.functions";
 import { createOrder, verifyRazorpayPayment } from "@/lib/api/order.functions";
 import { getSettings } from "@/lib/api/settings.functions";
+import { useQueryClient } from "@tanstack/react-query";
 
 declare global {
   interface Window {
@@ -26,6 +27,7 @@ export default function CartPage() {
   const clear = useCart((s) => s.clear);
   const { user } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [checkingOut, setCheckingOut] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -59,6 +61,11 @@ export default function CartPage() {
     }
   }, [addresses, selectedAddressId]);
 
+  // Force sync cart prices when visiting cart or toggling checkout
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["cart-prices"] });
+  }, [checkingOut, queryClient]);
+
   // Fetch app settings for shipping charge
   const { data: settings } = useQuery({
     queryKey: ["app_settings"],
@@ -67,6 +74,10 @@ export default function CartPage() {
 
   // Filter out corrupted items from previous sessions
   const validItems = items.filter((i) => typeof i.price === "number" && !isNaN(i.price));
+  
+  // Find items that are out of stock
+  const outOfStockItems = validItems.filter(i => (i.stock !== undefined && i.stock < i.qty) || i.isActive === false);
+  const canCheckout = outOfStockItems.length === 0 && validItems.length > 0;
 
   // Cart uses self-contained item data (price, productName, image)
   const subtotal = validItems.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -222,6 +233,11 @@ export default function CartPage() {
                         </div>
                         <span className="text-gold font-semibold">₹{(i.price * i.qty).toLocaleString("en-IN")}</span>
                       </div>
+                      {((i.stock !== undefined && i.stock === 0) || i.isActive === false) ? (
+                        <p className="text-xs font-semibold text-maroon mt-3">Out of Stock</p>
+                      ) : (i.stock !== undefined && i.stock < i.qty) ? (
+                        <p className="text-xs font-semibold text-maroon mt-3">Only {i.stock} left in stock</p>
+                      ) : null}
                     </div>
                     <button onClick={() => remove(i.id, i.variantId)} className="self-start p-1 hover:text-maroon"><X className="w-4 h-4" /></button>
                   </div>
@@ -336,14 +352,14 @@ export default function CartPage() {
             {checkingOut ? (
               <button
                 onClick={handlePlaceOrder}
-                disabled={submitting || !selectedAddressId}
+                disabled={submitting || !selectedAddressId || !canCheckout}
                 className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50"
               >
                 {submitting ? "PROCESSING…" : `PLACE ORDER (${paymentMethod === "online" ? "PAY NOW" : "COD"})`}
               </button>
             ) : (
-              <button onClick={handleCheckout} className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition">
-                CHECKOUT
+              <button onClick={handleCheckout} disabled={!canCheckout} className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                {canCheckout ? "CHECKOUT" : "UPDATE CART TO CHECKOUT"}
               </button>
             )}
             <Link href="/products" className="block text-center text-sm text-muted-foreground mt-4 hover:text-gold">Continue Shopping</Link>

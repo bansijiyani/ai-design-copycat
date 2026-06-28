@@ -14,6 +14,13 @@ export async function sendOtpEmail({ data: { email, type } }: { data: { email: s
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
+  // Delete any existing OTPs for this email/type to prevent verification conflicts
+  await supabaseAdmin
+    .from("otp_codes")
+    .delete()
+    .eq("email", email)
+    .eq("type", type);
+
   const { error: dbError } = await supabaseAdmin
     .from("otp_codes")
     .insert({
@@ -35,11 +42,31 @@ export async function sendOtpEmail({ data: { email, type } }: { data: { email: s
 
   const subject = type === "signup" ? "Verify your email address" : "Admin Dashboard 2FA Code";
   const html = `
-    <div style="font-family: sans-serif; padding: 20px;">
-      <h2>FizTopz ${type === "signup" ? "Registration" : "Admin Login"}</h2>
-      <p>Your verification code is:</p>
-      <h1 style="letter-spacing: 4px; color: #722F37;">${otp}</h1>
-      <p>This code will expire in 10 minutes.</p>
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #FBF9F6; padding: 40px 20px; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        
+        <!-- Header -->
+        <div style="background-color: #722F37; padding: 30px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 1px;">FizTopz ${type === "signup" ? "Registration" : "Admin Verification"}</h1>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 40px 30px; text-align: center;">
+          <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px; color: #555;">Please use the following verification code to complete your ${type === "signup" ? "registration" : "login"} process.</p>
+          
+          <div style="background-color: #f9f9f9; border: 2px dashed #722F37; padding: 20px; margin: 30px auto; max-width: 300px; border-radius: 8px;">
+            <h2 style="margin: 0; font-size: 36px; letter-spacing: 8px; color: #722F37; font-weight: bold;">${otp}</h2>
+          </div>
+          
+          <p style="font-size: 14px; color: #888; margin-top: 30px;">This code will expire in exactly <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
+          <p style="margin: 0;">© 2026 FizTopz. All rights reserved.</p>
+        </div>
+        
+      </div>
     </div>
   `;
 

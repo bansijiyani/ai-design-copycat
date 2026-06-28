@@ -3,26 +3,36 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, User, ChevronDown, Shield, LogOut, Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Logo } from "./Logo";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { useCart, useWishlist } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import { getProducts } from "@/lib/api/product.functions";
+import { getProducts, getProductsByIds } from "@/lib/api/product.functions";
+import { getSettings } from "@/lib/api/settings.functions";
 
 export function TopBar() {
+  const { data: settings } = useQuery({
+    queryKey: ["app_settings"],
+    queryFn: () => getSettings(),
+  });
+  
+  const threshold = settings?.free_shipping_threshold ?? "999";
+
   return (
     <div className="bg-gold text-promo-foreground text-xs tracking-wide">
       <div className="container mx-auto px-4 py-2.5 text-center">
-        FREE SHIPPING ON ORDERS ABOVE ₹999 &middot; EASY 7-DAY RETURNS &middot; PAN-INDIA DELIVERY
+        FREE SHIPPING ON ORDERS ABOVE ₹{threshold} &middot; EASY RETURNS ON APPLICABLE ITEMS &middot; PAN-INDIA DELIVERY
       </div>
     </div>
   );
 }
 
 export function Header() {
-  const cartCount = useCart((s) => s.items.reduce((a, b) => a + b.qty, 0));
+  const cartItems = useCart((s) => s.items);
+  const cartCount = cartItems.reduce((a, b) => a + b.qty, 0);
+  const syncPrices = useCart((s) => s.syncPrices);
   const wishCount = useWishlist((s) => s.ids.length);
   const { user, isAdmin, signOut } = useAuth();
 
@@ -48,6 +58,21 @@ export function Header() {
       setQuery("");
     }
   };
+
+  // Sync Cart Prices
+  const productIds = Array.from(new Set(cartItems.map((i) => i.id)));
+  const { data: latestCartProducts } = useQuery({
+    queryKey: ["cart-prices", productIds],
+    queryFn: () => getProductsByIds({ data: { ids: productIds } }),
+    enabled: productIds.length > 0,
+    staleTime: 60 * 1000, // 1 min
+  });
+
+  useEffect(() => {
+    if (latestCartProducts && latestCartProducts.length > 0) {
+      syncPrices(latestCartProducts);
+    }
+  }, [latestCartProducts, syncPrices]);
 
   const navItems = [
     { to: "/", label: "Home" },

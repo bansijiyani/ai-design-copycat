@@ -9,6 +9,7 @@ import { Settings, Save } from "lucide-react";
 export default function AdminSettings() {
   const queryClient = useQueryClient();
   const [shippingCharge, setShippingCharge] = useState("");
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("");
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["app_settings"],
@@ -16,13 +17,17 @@ export default function AdminSettings() {
   });
 
   useEffect(() => {
-    if (settings && settings.flat_shipping_charge) {
-      setShippingCharge(settings.flat_shipping_charge);
+    if (settings) {
+      if (settings.flat_shipping_charge) setShippingCharge(settings.flat_shipping_charge);
+      if (settings.free_shipping_threshold) setFreeShippingThreshold(settings.free_shipping_threshold);
     }
   }, [settings]);
 
   const updateMutation = useMutation({
-    mutationFn: (val: string) => updateSetting({ data: { key: "flat_shipping_charge", value: val } }),
+    mutationFn: async (payload: { shippingCharge: string; threshold: string }) => {
+      await updateSetting({ data: { key: "flat_shipping_charge", value: payload.shippingCharge } });
+      await updateSetting({ data: { key: "free_shipping_threshold", value: payload.threshold } });
+    },
     onSuccess: () => {
       toast.success("Settings updated successfully");
       queryClient.invalidateQueries({ queryKey: ["app_settings"] });
@@ -35,10 +40,14 @@ export default function AdminSettings() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!shippingCharge || isNaN(Number(shippingCharge))) {
-      toast.error("Please enter a valid numeric value");
+      toast.error("Please enter a valid numeric value for flat shipping charge");
       return;
     }
-    updateMutation.mutate(shippingCharge);
+    if (!freeShippingThreshold || isNaN(Number(freeShippingThreshold))) {
+      toast.error("Please enter a valid numeric value for free shipping threshold");
+      return;
+    }
+    updateMutation.mutate({ shippingCharge, threshold: freeShippingThreshold });
   };
 
   return (
@@ -76,6 +85,28 @@ export default function AdminSettings() {
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               This amount will be added to the cart subtotal for all orders.
+            </p>
+          </div>
+
+          <div className="max-w-sm">
+            <label className="block text-sm font-medium mb-1.5">
+              Free Shipping Threshold (₹)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₹</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={freeShippingThreshold}
+                onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 border border-border rounded focus:outline-none focus:border-maroon focus:ring-1 focus:ring-maroon"
+                placeholder="999"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Orders above this amount will have free shipping.
             </p>
           </div>
 

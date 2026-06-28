@@ -12,13 +12,64 @@ import { useAuth } from "@/lib/auth";
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
   pending: { label: "Pending", bg: "#FEF3C7", color: "#92400E", icon: <Clock className="w-3.5 h-3.5" /> },
   processing: { label: "Processing", bg: "#DBEAFE", color: "#1E40AF", icon: <Package className="w-3.5 h-3.5" /> },
+  packed: { label: "Packed", bg: "#FEF08A", color: "#854D0E", icon: <Archive className="w-3.5 h-3.5" /> },
   shipped: { label: "Shipped", bg: "#EDE9FE", color: "#5B21B6", icon: <Truck className="w-3.5 h-3.5" /> },
+  out_for_delivery: { label: "Out for Delivery", bg: "#FFEDD5", color: "#C2410C", icon: <MapPin className="w-3.5 h-3.5" /> },
   delivered: { label: "Delivered", bg: "#D1FAE5", color: "#065F46", icon: <CheckCircle className="w-3.5 h-3.5" /> },
   cancelled: { label: "Cancelled", bg: "#FEE2E2", color: "#B91C1C", icon: <XCircle className="w-3.5 h-3.5" /> },
   return_initiated: { label: "Return Initiated", bg: "#FEF08A", color: "#854D0E", icon: <RefreshCcw className="w-3.5 h-3.5" /> },
   return_received: { label: "Return Received", bg: "#E0E7FF", color: "#3730A3", icon: <Archive className="w-3.5 h-3.5" /> },
   refund_completed: { label: "Refund Completed", bg: "#D1FAE5", color: "#065F46", icon: <Banknote className="w-3.5 h-3.5" /> },
 };
+
+const PROGRESS_STEPS = [
+  { id: "pending", label: "Order Placement", icon: Clock },
+  { id: "processing", label: "Processing", icon: Package },
+  { id: "packed", label: "Packed", icon: Archive },
+  { id: "shipped", label: "Shipped", icon: Truck },
+  { id: "out_for_delivery", label: "Out for Delivery", icon: MapPin },
+  { id: "delivered", label: "Delivered", icon: CheckCircle }
+];
+
+function OrderProgress({ currentStatus }: { currentStatus: string }) {
+  const currentIndex = PROGRESS_STEPS.findIndex(s => s.id === currentStatus);
+  const isCancelledOrReturned = ["cancelled", "return_initiated", "return_received", "refund_completed"].includes(currentStatus);
+
+  if (isCancelledOrReturned) return null;
+
+  const percentage = Math.max(0, Math.min(100, (currentIndex / (PROGRESS_STEPS.length - 1)) * 100));
+
+  return (
+    <div className="w-full py-4 mb-4 overflow-x-auto no-scrollbar">
+      <div className="flex items-center justify-between min-w-[700px] relative z-0">
+        {/* Background dashed line */}
+        <div className="absolute left-12 right-12 top-6 h-0 border-t-2 border-dashed border-border z-0" />
+        
+        {/* Foreground solid line */}
+        <div 
+          className="absolute left-12 top-6 h-0 border-t-2 border-solid border-maroon z-0 transition-all duration-500 ease-in-out" 
+          style={{ width: `calc((100% - 6rem) * ${percentage / 100})` }} 
+        />
+        
+        {PROGRESS_STEPS.map((step, index) => {
+          const isActive = currentIndex >= 0 && index <= currentIndex;
+          const Icon = step.icon;
+          
+          return (
+            <div key={step.id} className="flex flex-col items-center gap-3 relative z-10 w-24">
+              <div className={`w-12 h-12 rounded-xl bg-white flex items-center justify-center border-2 transition-all ${isActive ? 'border-maroon text-maroon shadow-sm' : 'border-border text-muted-foreground border-dashed'}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={`text-xs font-semibold text-center leading-tight ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ProfileOrders() {
   const { user } = useAuth();
@@ -104,6 +155,7 @@ export default function ProfileOrders() {
                 {/* Expanded Details */}
                 {expandedId === order.id && (
                   <div className="border-t border-border/50 bg-muted/10 p-5 space-y-6">
+                    <OrderProgress currentStatus={order.status} />
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Shipping Info */}

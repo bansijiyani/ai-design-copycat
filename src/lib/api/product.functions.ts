@@ -35,6 +35,23 @@ export async function getProductById({ data: { id } }: { data: { id: string } })
   return data;
 }
 
+export async function getProductsByIds({ data: { ids } }: { data: { ids: string[] } }) {
+  if (!ids || ids.length === 0) return [];
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("products")
+    .select(`
+      id,
+      price,
+      stock,
+      is_active,
+      variants:product_variants(id, price_override, stock, is_active, color_name, size)
+    `)
+    .in("id", ids);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function getProductsByCategory({ data: { slug } }: { data: { slug: string } }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
