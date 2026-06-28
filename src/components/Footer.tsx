@@ -61,6 +61,8 @@ export function Footer() {
                   <Link href="/profile/orders" className="hover:text-gold transition">{l}</Link>
                 ) : l === "Contact Us" ? (
                   <Link href="/contact" className="hover:text-gold transition">{l}</Link>
+                ) : l === "FAQs" ? (
+                  <Link href="/faq" className="hover:text-gold transition">{l}</Link>
                 ) : (
                   <a href="#" className="hover:text-gold transition">{l}</a>
                 )}
