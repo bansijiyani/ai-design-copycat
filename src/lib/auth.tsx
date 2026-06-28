@@ -96,8 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     session,
     isAdmin,
-    isVerified: session?.user?.user_metadata?.is_verified === true || session?.user?.app_metadata?.providers?.includes('google'),
-    isAdminMfaVerified: isAdminMfaVerified || session?.user?.app_metadata?.providers?.includes('google'),
+    isVerified: session?.user?.user_metadata?.is_verified === true || (session?.user?.app_metadata?.providers?.includes('google') ?? false),
+    isAdminMfaVerified: isAdminMfaVerified || (session?.user?.app_metadata?.providers?.includes('google') ?? false),
     setAdminMfaVerified,
     loading,
     async signIn(email, password) {
