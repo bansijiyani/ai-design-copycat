@@ -144,8 +144,8 @@ function ProductsPageContent() {
             </Section>
 
             <Section title="Price Range">
-              <div className="flex justify-between text-xs text-muted-foreground"><span>₹0</span><span>₹20,000</span></div>
-              <input type="range" min={0} max={20000} step={500} value={maxPrice} onChange={(e) => setMaxPrice(+e.target.value)} className="w-full mt-2 accent-[var(--gold)]" />
+              <div className="flex justify-between text-xs text-muted-foreground"><span>₹0</span><span>₹100,000</span></div>
+              <input type="range" min={0} max={100000} step={500} value={maxPrice} onChange={(e) => setMaxPrice(+e.target.value)} className="w-full mt-2 accent-[var(--gold)]" />
               <div className="grid grid-cols-2 gap-2 mt-3">
                 <input value={0} readOnly className="px-3 py-1.5 text-sm bg-muted rounded-sm" />
                 <input value={maxPrice} readOnly className="px-3 py-1.5 text-sm bg-muted rounded-sm" />
@@ -221,7 +221,7 @@ function ProductsPageContent() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">No products match your filters.</div>
           ) : (
-            <div className={view === "grid" ? "grid grid-cols-2 lg:grid-cols-3 gap-5" : "space-y-4"}>
+            <div className={view === "grid" ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5" : "space-y-4"}>
               {filtered.map((p: any) => <ProductCard key={p.id} product={p} />)}
             </div>
           )}

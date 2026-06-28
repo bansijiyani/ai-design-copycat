@@ -42,16 +42,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
   const isOutOfStock = totalStock === 0 || product.is_active === false;
 
-  if (isOutOfStock) {
-    if (!badges.includes("OUT OF STOCK")) badges.push("OUT OF STOCK");
-  } else if (!badges.length) {
-    if (discount > 0) badges.push(`${discount}% OFF`);
-    if (product.isNew) badges.push("NEW");
+  if (!badges.length && product.isNew) {
+    badges.push("NEW");
   }
 
   const badgeColor = (b: string) =>
-    b === "OUT OF STOCK" ? "bg-zinc-800 text-white" :
-    b.includes("OFF") ? "bg-maroon text-white" :
     b === "NEW" ? "bg-forest text-white" :
     b === "BESTSELLER" ? "bg-gold text-white" :
     b === "PREMIUM" ? "bg-forest text-white" :
@@ -61,17 +56,26 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     <div className="group bg-card rounded-md overflow-hidden border border-border/50 hover:shadow-lg transition">
       <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-muted">
         {displayImage ? (
-          <img
-            src={displayImage}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-          />
+          <div className="w-full h-full relative">
+            <img
+              src={displayImage}
+              alt={product.name}
+              loading="lazy"
+              className={`w-full h-full object-cover transition duration-500 ${isOutOfStock ? "opacity-50" : "group-hover:scale-105"}`}
+            />
+            {isOutOfStock && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/20 z-10">
+                <span className="bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-sm text-xs font-bold tracking-widest text-maroon shadow-sm">
+                  OUT OF STOCK
+                </span>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="w-full h-full grid place-items-center text-muted-foreground text-xs">No Image</div>
         )}
         {badges.length > 0 && (
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
             {badges.map((b) => (
               <span key={b} className={`text-[10px] font-semibold px-2 py-1 rounded ${badgeColor(b)}`}>{b}</span>
             ))}
@@ -93,10 +97,15 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         <Link href={`/products/${product.id}`}>
           <h3 className="font-display text-base mt-1 hover:text-gold transition">{product.name}</h3>
         </Link>
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="mt-2 flex items-center gap-2 flex-wrap">
           <span className="text-gold font-semibold">₹{Number(product.price).toLocaleString("en-IN")}</span>
           {oldPrice && oldPrice > product.price && (
-            <span className="text-xs text-muted-foreground line-through">₹{Number(oldPrice).toLocaleString("en-IN")}</span>
+            <>
+              <span className="text-xs text-muted-foreground line-through">₹{Number(oldPrice).toLocaleString("en-IN")}</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-maroon/10 text-maroon ml-auto">
+                {discount}% OFF
+              </span>
+            </>
           )}
         </div>
       </div>

@@ -39,7 +39,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <AuthGuard>
           {children}
         </AuthGuard>
-        <Toaster richColors position="top-right" />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
