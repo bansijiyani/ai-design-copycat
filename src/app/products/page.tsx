@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Grid3x3, List, ArrowUpDown, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Grid3x3, LayoutGrid, List, ArrowUpDown, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -33,7 +33,7 @@ function ProductsPageContent() {
   const category = searchParams?.get("category") ?? undefined;
   const search = searchParams?.get("search") ?? undefined;
   const router = useRouter();
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "grid-2" | "list">("grid");
   const [maxPrice, setMaxPrice] = useState(20000);
   const [sizes, setSizes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(search || "");
@@ -211,8 +211,9 @@ function ProductsPageContent() {
                 )}
               </div>
               <div className="flex border border-border rounded-sm">
-                <button onClick={() => setView("grid")} className={`p-2 ${view === "grid" ? "bg-gold text-white" : ""}`}><Grid3x3 className="w-4 h-4" /></button>
-                <button onClick={() => setView("list")} className={`p-2 ${view === "list" ? "bg-gold text-white" : ""}`}><List className="w-4 h-4" /></button>
+                <button onClick={() => setView("grid")} className={`p-2 ${view === "grid" ? "bg-gold text-white" : ""}`} title="Dense Grid"><Grid3x3 className="w-4 h-4" /></button>
+                <button onClick={() => setView("grid-2")} className={`p-2 ${view === "grid-2" ? "bg-gold text-white" : ""}`} title="2 Items Per Row"><LayoutGrid className="w-4 h-4" /></button>
+                <button onClick={() => setView("list")} className={`p-2 ${view === "list" ? "bg-gold text-white" : ""}`} title="List View"><List className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -221,8 +222,8 @@ function ProductsPageContent() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">No products match your filters.</div>
           ) : (
-            <div className={view === "grid" ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5" : "space-y-4"}>
-              {filtered.map((p: any) => <ProductCard key={p.id} product={p} />)}
+            <div className={view === "grid" ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5" : view === "grid-2" ? "grid grid-cols-2 gap-5 lg:gap-8" : "flex flex-col gap-5"}>
+              {filtered.map((p: any) => <ProductCard key={p.id} product={p} layout={view} />)}
             </div>
           )}
         </div>

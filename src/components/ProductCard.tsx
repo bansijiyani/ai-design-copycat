@@ -19,7 +19,7 @@ type ProductCardData = {
   isNew?: boolean;
 };
 
-export function ProductCard({ product }: { product: ProductCardData }) {
+export function ProductCard({ product, layout = "grid" }: { product: ProductCardData, layout?: "grid" | "grid-2" | "list" }) {
   const wished = useWishlist((s) => s.ids.includes(product.id));
   const toggle = useWishlist((s) => s.toggle);
 
@@ -53,8 +53,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     "bg-gold text-white";
 
   return (
-    <div className="group bg-card rounded-md overflow-hidden border border-border/50 hover:shadow-lg transition">
-      <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-muted">
+    <div className={`group bg-card rounded-md overflow-hidden border border-border/50 hover:shadow-lg transition ${layout === "list" ? "flex flex-col sm:flex-row sm:h-56" : ""}`}>
+      <Link href={`/products/${product.id}`} className={`block relative overflow-hidden bg-muted shrink-0 ${layout === "list" ? "aspect-[3/4] sm:aspect-auto sm:w-48 sm:h-full" : "aspect-[3/4]"}`}>
         {displayImage ? (
           <div className="w-full h-full relative">
             <img
@@ -92,7 +92,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           <Eye className="w-4 h-4" /> QUICK VIEW
         </div>
       </Link>
-      <div className="p-4">
+      <div className={`p-4 flex flex-col justify-center ${layout === "list" ? "flex-1" : ""}`}>
         <p className="text-[10px] tracking-[0.15em] text-muted-foreground">{product.brand}</p>
         <Link href={`/products/${product.id}`}>
           <h3 className="font-display text-base mt-1 hover:text-gold transition">{product.name}</h3>
@@ -102,12 +102,17 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           {oldPrice && oldPrice > product.price && (
             <>
               <span className="text-xs text-muted-foreground line-through">₹{Number(oldPrice).toLocaleString("en-IN")}</span>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-maroon/10 text-maroon ml-auto">
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-maroon/10 text-maroon ${layout === "list" ? "" : "ml-auto"}`}>
                 {discount}% OFF
               </span>
             </>
           )}
         </div>
+        {layout === "list" && (
+          <p className="mt-4 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            Premium {product.brand} {product.name.toLowerCase()}. Crafted with fine materials and elegant design, perfect for any occasion.
+          </p>
+        )}
       </div>
     </div>
   );
