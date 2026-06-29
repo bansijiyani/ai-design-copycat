@@ -101,7 +101,7 @@ export function Header() {
       <TopBar />
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4 md:gap-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center sm:gap-3">
             <Sheet>
               <SheetTrigger asChild>
                 <button className="lg:hidden p-2 -ml-2 hover:text-gold transition">
@@ -139,7 +139,7 @@ export function Header() {
                 </div>
               </SheetContent>
             </Sheet>
-            <Logo className="h-14 sm:h-15 lg:h-20 scale-[1.8] sm:scale-[1.9] lg:scale-[1.8] origin-left ml-4 lg:ml-0" />
+            <Logo className="h-14 sm:h-15 lg:h-20 scale-[1.8] sm:scale-[1.9] lg:scale-[1.8] origin-left ml-1 lg:ml-0" />
           </div>
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
@@ -152,16 +152,18 @@ export function Header() {
                   {item.hasMenu && <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />}
                 </Link>
                 {item.hasMenu && item.subMenu && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-background border border-border shadow-lg rounded-sm py-2 hidden group-hover:block z-50">
-                    {item.subMenu.map((sub) => (
-                      <Link
-                        key={sub.label}
-                        href={{ pathname: "/products", query: { category: sub.category } }}
-                        className="block px-4 py-2 text-sm text-foreground/80 hover:text-gold hover:bg-muted transition"
-                      >
-                        {sub.label}
-                      </Link>
-                    ))}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-48 hidden group-hover:block z-50">
+                    <div className="bg-background border border-border shadow-xl rounded-md py-2 overflow-hidden">
+                      {item.subMenu.map((sub) => (
+                        <Link
+                          key={sub.label}
+                          href={{ pathname: "/products", query: { category: sub.category } }}
+                          className="block px-5 py-2.5 text-sm font-medium text-foreground/80 hover:text-gold hover:bg-gold/5 transition-colors"
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

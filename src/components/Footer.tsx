@@ -35,7 +35,7 @@ export function Footer() {
           </ul>
         </div> */}
         <div>
-          <h4 className="text-xs tracking-[0.2em] text-white mb-5">SHOP</h4>
+          <h3 className="text-md tracking-[0.2em] text-white mb-5">SHOP</h3>
           <ul className="space-y-3 text-sm">
             {["sarees", "kurtas", "lehengas", "dresses", "co-ords", "denim"].map((c) => (
               <li key={c}>
@@ -47,7 +47,7 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="text-xs tracking-[0.2em] text-white mb-5">HELP</h4>
+          <h3 className="text-md tracking-[0.2em] text-white mb-5">HELP</h3>
           <ul className="space-y-3 text-sm">
             {["Shipping Policy", "Returns & Exchanges", "Size Guide", "Track Your Order", "Contact Us", "FAQs"].map((l) => (
               <li key={l}>

@@ -292,14 +292,14 @@ export default function CartPage() {
                   <div className="border border-border rounded-sm p-5">
                     <h3 className="font-semibold text-sm mb-4">New Address</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      <AddrField label="Full Name" className="col-span-2"><input value={addrForm.full_name} onChange={(e) => setAddrForm({ ...addrForm, full_name: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="Phone"><input value={addrForm.phone} onChange={(e) => setAddrForm({ ...addrForm, phone: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="Label"><input value={addrForm.label} onChange={(e) => setAddrForm({ ...addrForm, label: e.target.value })} className="addr-input" placeholder="Home / Work" /></AddrField>
-                      <AddrField label="Address Line 1" className="col-span-2"><input value={addrForm.line1} onChange={(e) => setAddrForm({ ...addrForm, line1: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="Address Line 2" className="col-span-2"><input value={addrForm.line2} onChange={(e) => setAddrForm({ ...addrForm, line2: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="City"><input value={addrForm.city} onChange={(e) => setAddrForm({ ...addrForm, city: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="State"><input value={addrForm.state} onChange={(e) => setAddrForm({ ...addrForm, state: e.target.value })} className="addr-input" /></AddrField>
-                      <AddrField label="Pincode"><input value={addrForm.pincode} onChange={(e) => setAddrForm({ ...addrForm, pincode: e.target.value })} className="addr-input" /></AddrField>
+                      <AddrField label="Full Name" className="col-span-2"><input value={addrForm.full_name} onChange={(e) => setAddrForm({ ...addrForm, full_name: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="Phone"><input value={addrForm.phone} onChange={(e) => setAddrForm({ ...addrForm, phone: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="Label"><input value={addrForm.label} onChange={(e) => setAddrForm({ ...addrForm, label: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" placeholder="Home / Work" /></AddrField>
+                      <AddrField label="Address Line 1" className="col-span-2"><input value={addrForm.line1} onChange={(e) => setAddrForm({ ...addrForm, line1: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="Address Line 2" className="col-span-2"><input value={addrForm.line2} onChange={(e) => setAddrForm({ ...addrForm, line2: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="City"><input value={addrForm.city} onChange={(e) => setAddrForm({ ...addrForm, city: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="State"><input value={addrForm.state} onChange={(e) => setAddrForm({ ...addrForm, state: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
+                      <AddrField label="Pincode"><input value={addrForm.pincode} onChange={(e) => setAddrForm({ ...addrForm, pincode: e.target.value })} className="w-full px-4 py-2.5 bg-background border border-border rounded-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold text-sm transition-colors" /></AddrField>
                     </div>
                     <div className="mt-4 flex gap-2 justify-end">
                       <button onClick={() => setShowAddressForm(false)} className="px-4 py-2 text-sm border border-border rounded">Cancel</button>
@@ -367,8 +367,6 @@ export default function CartPage() {
         </div>
       )}
       <Footer />
-
-      <style>{`.addr-input{width:100%;padding:0.6rem 0.75rem;background:hsl(var(--muted,0 0% 96%));border:1px solid hsl(var(--border));border-radius:4px;font-size:0.875rem;outline:none}.addr-input:focus{border-color:#c9a14a}`}</style>
     </div>
   );
 }
