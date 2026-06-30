@@ -41,7 +41,7 @@ export default function LoginPage() {
         <div className="bg-gold text-white p-12 lg:p-20 flex flex-col justify-center items-center text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.5) 20px, rgba(255,255,255,0.5) 21px)" }} />
           <div className="relative">
-            <Logo variant="footer" className="h-40 scale-[2.5] origin-center" />
+            <Logo variant="footer" className="h-10 scale-[2.5] origin-center" />
             <h2 className="font-display text-5xl mt-10">Welcome Back</h2>
             <p className="mt-5 text-white/80 max-w-sm">Sign in to track your orders, manage your wishlist, and enjoy a personalised shopping experience.</p>
             <div className="grid grid-cols-3 gap-3 mt-12 max-w-sm">
