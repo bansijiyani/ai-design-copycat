@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen flex bg-muted/30">
       <aside className="w-64 bg-foreground text-background flex flex-col">
         <div className="p-6 border-b border-white/10">
-          <Logo variant="footer" className="h-20 scale-[2.5] origin-left" />
+          <Logo variant="footer" className="h-5 scale-[2.5] origin-left" />
           <p className="text-[10px] tracking-[0.2em] text-gold mt-1">ADMIN PANEL</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
