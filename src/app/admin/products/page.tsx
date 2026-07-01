@@ -283,8 +283,8 @@ export default function AdminProducts() {
 
       {/* EDIT / CREATE MODAL */}
       {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 grid place-items-center p-4" onClick={() => setEditing(null)}>
-          <div className="bg-background rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 grid place-items-center p-4">
+          <div className="bg-background rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
               <h2 className="font-display text-2xl">{editing.id ? "Edit Product" : "New Product"}</h2>
               <button onClick={() => setEditing(null)}><X className="w-5 h-5" /></button>

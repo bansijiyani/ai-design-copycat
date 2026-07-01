@@ -227,9 +227,9 @@ export default function CartPage() {
                       {i.size && <p className="text-xs text-muted-foreground">Size: {i.size}</p>}
                       <div className="mt-3 flex items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center border border-border rounded-sm">
-                          <button onClick={() => updateQty(i.id, Math.max(1, i.qty - 1), i.variantId)} className="p-2"><Minus className="w-3 h-3" /></button>
+                          <button onClick={() => updateQty(i.id, Math.max(1, i.qty - 1), i.variantId)} className="p-2 cursor-pointer"><Minus className="w-3 h-3" /></button>
                           <span className="px-4 text-sm">{i.qty}</span>
-                          <button onClick={() => updateQty(i.id, i.qty + 1, i.variantId)} className="p-2"><Plus className="w-3 h-3" /></button>
+                          <button onClick={() => updateQty(i.id, i.qty + 1, i.variantId)} className="p-2 cursor-pointer"><Plus className="w-3 h-3" /></button>
                         </div>
                         <span className="text-gold font-semibold">₹{(i.price * i.qty).toLocaleString("en-IN")}</span>
                       </div>
@@ -332,7 +332,7 @@ export default function CartPage() {
                   <div className="space-y-2">
                     <label className={`flex items-center gap-3 p-3 border rounded-sm cursor-pointer transition ${paymentMethod === "online" ? "border-gold bg-gold/5" : "border-border"}`}>
                       <input type="radio" name="payment_method" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-[var(--gold)]" />
-                      <span className="text-sm font-medium">Pay Online (Razorpay)</span>
+                      <span className="text-sm font-medium">Pay Online</span>
                     </label>
                     <label className={`flex items-center gap-3 p-3 border rounded-sm cursor-pointer transition ${paymentMethod === "cod" ? "border-gold bg-gold/5" : "border-border"}`}>
                       <input type="radio" name="payment_method" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-[var(--gold)]" />
@@ -353,12 +353,12 @@ export default function CartPage() {
               <button
                 onClick={handlePlaceOrder}
                 disabled={submitting || !selectedAddressId || !canCheckout}
-                className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50"
+                className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50 cursor-pointer"
               >
                 {submitting ? "PROCESSING…" : `PLACE ORDER (${paymentMethod === "online" ? "PAY NOW" : "COD"})`}
               </button>
             ) : (
-              <button onClick={handleCheckout} disabled={!canCheckout} className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={handleCheckout} disabled={!canCheckout} className="w-full mt-6 bg-gold text-white py-4 font-semibold tracking-wider text-sm hover:bg-gold/90 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                 {canCheckout ? "CHECKOUT" : "UPDATE CART TO CHECKOUT"}
               </button>
             )}
