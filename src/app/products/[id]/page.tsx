@@ -9,9 +9,10 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { getProductById, getProducts } from "@/lib/api/product.functions";
+import { getProductById, getProducts, getProductReviews, submitProductReview } from "@/lib/api/product.functions";
 import { getSettings } from "@/lib/api/settings.functions";
 import { useCart, useWishlist } from "@/lib/store";
+import { CloudinaryUpload } from "@/components/CloudinaryUpload";
 export default function PDP() {
   const { id } = useParams() as { id: string };
 
@@ -57,6 +58,8 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [pincode, setPincode] = useState("");
+  const [reviewForm, setReviewForm] = useState({ rating: 5, text: "", name: "", images: [] as string[] });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Variants
   const variants = product.variants ?? [];
@@ -110,6 +113,15 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
     setImgIdx(0); // Reset to first image when changing variants
   }, [selectedVariant?.id]);
 
+  const { data: reviewsData = [], refetch: refetchReviews } = useQuery({
+    queryKey: ["product-reviews", product.id],
+    queryFn: () => getProductReviews({ data: { productId: product.id } }),
+  });
+
+  const averageRating = reviewsData.length > 0 
+    ? (reviewsData.reduce((acc: number, r: any) => acc + r.rating, 0) / reviewsData.length).toFixed(1) 
+    : "4.8"; // Default fallback if no reviews
+
   const add = useCart((s) => s.add);
   const wished = useWishlist((s) => s.ids.includes(product.id));
   const toggleWish = useWishlist((s) => s.toggle);
@@ -145,6 +157,33 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
       }
     } catch (e) {}
   }
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewForm.name || !reviewForm.text) {
+      toast.error("Please fill in your name and review text");
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      await submitProductReview({
+        data: {
+          productId: product.id,
+          rating: reviewForm.rating,
+          reviewText: reviewForm.text,
+          images: reviewForm.images,
+          reviewerName: reviewForm.name,
+        }
+      });
+      toast.success("Review submitted and pending approval!");
+      setReviewForm({ rating: 5, text: "", name: "", images: [] });
+      refetchReviews();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit review");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const DescriptionContent = () => (
     <div className="space-y-6">
@@ -195,11 +234,6 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
       )
     });
   }
-
-  const reviews = [
-    { name: "Priya Sharma", date: "12 May 2026", rating: 5, text: "Absolutely stunning! The work is so intricate and quality is top-notch. Got so many compliments at my cousin's wedding. Will definitely buy again!" },
-    { name: "Meera Iyer", date: "3 Apr 2026", rating: 5, text: "The colour is exactly as shown in the photos. Packaging was beautiful too — came in a lovely box. Highly recommend FizTopz for ethnic wear." },
-  ];
 
   const related = allProducts
     .filter((p: any) => p.id !== product.id && p.section === product.section)
@@ -255,11 +289,12 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
           <div className="flex items-center gap-3 mt-3 text-sm">
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={`w-4 h-4 ${i < 4 ? "fill-gold text-gold" : "text-muted-foreground"}`} />
+                <Star key={i} className={`w-4 h-4 ${i < Math.round(Number(averageRating)) ? "fill-gold text-gold" : "text-muted-foreground"}`} />
               ))}
             </div>
-            <span className="font-semibold">4.8</span>
-            <span className="text-muted-foreground">|</span>
+            <span className="font-semibold">{averageRating}</span>
+            <span className="text-muted-foreground text-xs ml-1">({reviewsData.length} reviews)</span>
+            <span className="text-muted-foreground mx-1">|</span>
             <span className="text-muted-foreground text-xs">SKU: {product.sku ?? "—"}</span>
           </div>
 
@@ -362,6 +397,107 @@ function ProductDetail({ product, allProducts }: { product: any; allProducts: an
 
           <div className="mt-6">
             {accordions.map((a) => <Accordion key={a.title} {...a} />)}
+          </div>
+        </div>
+      </div>
+
+      {/* REVIEWS SECTION */}
+      <div className="container mx-auto px-4 pb-16">
+        <h2 className="font-display text-4xl mb-8">Customer Reviews</h2>
+        
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Reviews List */}
+          <div className="space-y-6">
+            {reviewsData.length === 0 ? (
+              <p className="text-muted-foreground italic">No reviews yet. Be the first to review this product!</p>
+            ) : (
+              reviewsData.map((review: any) => (
+                <div key={review.id} className="border-b border-border pb-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold">{review.reviewer_name}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? "fill-gold text-gold" : "text-muted-foreground"}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm mt-3">{review.review_text}</p>
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                      {review.images.map((img: string, i: number) => (
+                        <img key={i} src={img} alt="Review attachment" className="h-20 w-20 object-cover rounded-sm border border-border flex-shrink-0" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Write a Review */}
+          <div className="bg-muted/30 p-6 md:p-8 rounded-sm border border-border h-fit">
+            <h3 className="font-display text-2xl mb-4">Write a Review</h3>
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1.5">Rating</label>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setReviewForm({ ...reviewForm, rating: i + 1 })}
+                      className="p-1 hover:scale-110 transition-transform"
+                    >
+                      <Star className={`w-6 h-6 ${i < reviewForm.rating ? "fill-gold text-gold" : "text-muted-foreground stroke-1"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1.5">Name</label>
+                <input
+                  type="text"
+                  required
+                  value={reviewForm.name}
+                  onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-border rounded-sm focus:outline-none focus:border-gold text-sm"
+                  placeholder="Your name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1.5">Review</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={reviewForm.text}
+                  onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
+                  className="w-full px-4 py-2 border border-border rounded-sm focus:outline-none focus:border-gold text-sm resize-none"
+                  placeholder="Tell us what you think..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1.5">Add Images (Optional)</label>
+                <CloudinaryUpload
+                  value={reviewForm.images}
+                  onUpload={(url) => setReviewForm(prev => ({ ...prev, images: [...prev.images, url] }))}
+                  onRemove={(url) => setReviewForm(prev => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingReview}
+                className="w-full bg-gold text-white py-3 text-sm font-semibold tracking-wide rounded-sm hover:bg-gold/90 transition disabled:opacity-50"
+              >
+                {isSubmittingReview ? "SUBMITTING..." : "SUBMIT REVIEW"}
+              </button>
+            </form>
           </div>
         </div>
       </div>

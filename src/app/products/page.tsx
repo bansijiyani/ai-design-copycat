@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { getProducts } from "@/lib/api/product.functions";
 import { getCategories } from "@/lib/api/admin.functions";
+import { getSettings } from "@/lib/api/settings.functions";
 
 type Search = { category?: string; search?: string };
 
@@ -36,9 +37,12 @@ function ProductsPageContent() {
   const [view, setView] = useState<"grid" | "grid-2" | "list">("grid");
   const [maxPrice, setMaxPrice] = useState(20000);
   const [sizes, setSizes] = useState<string[]>([]);
+  const [selectedFabrics, setSelectedFabrics] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(search || "");
   const [sortOption, setSortOption] = useState("featured");
   const [sortOpen, setSortOpen] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const sortLabels: Record<string, string> = {
     "featured": "Featured",
@@ -65,6 +69,23 @@ function ProductsPageContent() {
     queryFn: () => getCategories(),
   });
 
+  // Fetch settings for dynamic filters
+  const { data: settings } = useQuery({
+    queryKey: ["app_settings"],
+    queryFn: () => getSettings(),
+  });
+
+  let availableFabrics: string[] = [];
+  let availableColors: { name: string; hex: string }[] = [];
+  if (settings) {
+    if (settings.filter_fabrics) {
+      try { availableFabrics = JSON.parse(settings.filter_fabrics); } catch(e) {}
+    }
+    if (settings.filter_colors) {
+      try { availableColors = JSON.parse(settings.filter_colors); } catch(e) {}
+    }
+  }
+
   const active = category ?? "all";
 
   // Filter products
@@ -82,6 +103,40 @@ function ProductsPageContent() {
         p.name.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q),
     );
+  }
+
+  // Filter by size
+  if (sizes.length > 0) {
+    filtered = filtered.filter((p: any) => {
+      if (!p.variants || p.variants.length === 0) return false;
+      return p.variants.some((v: any) => v.size && sizes.some((s) => s.toLowerCase() === v.size.toLowerCase()));
+    });
+  }
+
+  // Filter by fabric
+  if (selectedFabrics.length > 0) {
+    filtered = filtered.filter((p: any) => {
+      if (!p.description) return false;
+      try {
+        const desc = JSON.parse(p.description);
+        if (desc.details && desc.details.fabric) {
+          return selectedFabrics.some((f) => 
+            desc.details.fabric.toLowerCase().includes(f.toLowerCase())
+          );
+        }
+      } catch (e) {}
+      return false;
+    });
+  }
+
+  // Filter by color
+  if (selectedColors.length > 0) {
+    filtered = filtered.filter((p: any) => {
+      if (!p.variants || p.variants.length === 0) return false;
+      return p.variants.some((v: any) => 
+        v.color_name && selectedColors.some((c) => c.toLowerCase() === v.color_name.toLowerCase())
+      );
+    });
   }
 
   // Sort products
@@ -106,13 +161,32 @@ function ProductsPageContent() {
       </div>
 
       <div className="container mx-auto px-4 py-8 grid lg:grid-cols-[280px_1fr] gap-10">
+        
+        {/* Mobile Filter Backdrop */}
+        {isMobileFiltersOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsMobileFiltersOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside>
-          <div>
-            <h1 className="font-display text-5xl capitalize">{active === "all" ? "Shop" : active}</h1>
-            <p className="text-sm text-muted-foreground mt-2">
-              {productsLoading ? "Loading…" : `${filtered.length} products found`}
-            </p>
+        <aside 
+          className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-background border-r border-border p-6 overflow-y-auto transition-transform duration-300 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:border-none lg:p-0 lg:overflow-visible lg:translate-x-0 ${isMobileFiltersOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}
+        >
+          <div className="flex items-center justify-between lg:block">
+            <div>
+              <h1 className="font-display text-5xl capitalize">{active === "all" ? "Shop" : active}</h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                {productsLoading ? "Loading…" : `${filtered.length} products found`}
+              </p>
+            </div>
+            <button 
+              className="lg:hidden p-2 bg-muted rounded-full hover:bg-muted/80"
+              onClick={() => setIsMobileFiltersOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="mt-8">
@@ -152,6 +226,48 @@ function ProductsPageContent() {
               </div>
             </Section>
 
+            {availableFabrics.length > 0 && (
+              <Section title="Fabric">
+                <div className="flex flex-col gap-2">
+                  {availableFabrics.map((f) => {
+                    const on = selectedFabrics.includes(f);
+                    return (
+                      <label key={f} className="flex items-center gap-2 cursor-pointer text-sm hover:text-gold transition">
+                        <input 
+                          type="checkbox" 
+                          checked={on}
+                          onChange={() => setSelectedFabrics(on ? selectedFabrics.filter(x => x !== f) : [...selectedFabrics, f])}
+                          className="accent-gold w-4 h-4 cursor-pointer"
+                        />
+                        {f}
+                      </label>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
+            {availableColors.length > 0 && (
+              <Section title="Color">
+                <div className="flex flex-wrap gap-2">
+                  {availableColors.map((c) => {
+                    const on = selectedColors.includes(c.name);
+                    return (
+                      <button
+                        key={c.name}
+                        onClick={() => setSelectedColors(on ? selectedColors.filter(x => x !== c.name) : [...selectedColors, c.name])}
+                        className={`w-8 h-8 rounded-full border-2 transition relative shadow-sm ${on ? "border-gold ring-2 ring-gold/20" : "border-border hover:border-muted-foreground"}`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      >
+                        {on && <span className="absolute inset-0 flex items-center justify-center mix-blend-difference text-white text-[10px]">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
             <Section title="Size">
               <div className="flex flex-wrap gap-2">
                 {["XS", "S", "M", "L", "XL", "XXL", "Free Size"].map((s) => {
@@ -174,11 +290,22 @@ function ProductsPageContent() {
         {/* Grid */}
         <div>
           <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-            {active !== "all" ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 rounded-sm text-sm capitalize">
-                {active} <button onClick={() => setCategory("all")}><X className="w-3 h-3" /></button>
-              </div>
-            ) : <div />}
+            <div className="flex items-center gap-3">
+              {active !== "all" ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 rounded-sm text-sm capitalize">
+                  {active} <button onClick={() => setCategory("all")}><X className="w-3 h-3" /></button>
+                </div>
+              ) : <div />}
+              
+              {/* Mobile Filter Toggle */}
+              <button 
+                onClick={() => setIsMobileFiltersOpen(true)}
+                className="lg:hidden flex items-center gap-2 px-3 py-1.5 border border-border hover:border-gold rounded-sm text-sm bg-background transition"
+              >
+                Filters <span className="w-4 h-4 rounded-full bg-gold text-white text-[10px] grid place-items-center">{active !== "all" ? 1 : 0}</span>
+              </button>
+            </div>
+            
             <div className="flex items-center gap-3">
               <div className="relative">
                 <button 

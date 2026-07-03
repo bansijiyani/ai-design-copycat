@@ -256,11 +256,37 @@ export async function getAllOrders() {
 
 export async function updateOrderStatus({ data: { id, status } }: { data: { id: string; status: string } }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  
+  // Update the status
   const { error } = await supabaseAdmin
     .from("orders")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(error.message);
+
+  // Fetch full order details to send email
+  const { data: orderDetails } = await supabaseAdmin
+    .from("orders")
+    .select(`
+      *,
+      order_items(product_name, quantity, price)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (orderDetails && orderDetails.user_id) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", orderDetails.user_id)
+      .single();
+
+    if (profile && profile.email) {
+      const { sendOrderStatusEmail } = await import("./email.functions");
+      await sendOrderStatusEmail(orderDetails, profile, status);
+    }
+  }
+
   return { success: true };
 }
 

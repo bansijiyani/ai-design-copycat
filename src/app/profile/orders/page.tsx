@@ -6,6 +6,7 @@ import { Package, Clock, Truck, CheckCircle, XCircle, RefreshCcw, Archive, Bankn
 import { getMyOrders, initiateOrderReturnOrCancel } from "@/lib/api/order.functions";
 import { toast } from "sonner";
 import { useState } from "react";
+import { DownloadInvoiceButton } from "@/components/DownloadInvoiceButton";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
@@ -228,18 +229,20 @@ export default function ProfileOrders() {
                           <span className="text-maroon">₹{order.total.toLocaleString("en-IN")}</span>
                         </div>
                       </div>
-                      
-                      {order.status !== "cancelled" && order.status !== "return_initiated" && order.status !== "return_received" && order.status !== "refund_completed" && (
-                        <button 
-                          onClick={() => handleCancelOrder(order.id, order.status === "delivered")}
-                          disabled={cancellingId === order.id}
-                          className="text-sm font-semibold px-6 py-2.5 border border-maroon text-maroon hover:bg-maroon hover:text-white transition-colors rounded disabled:opacity-50"
-                        >
-                          {cancellingId === order.id 
-                            ? "PROCESSING..." 
-                            : (order.status === "delivered" ? "RETURN ORDER" : "CANCEL ORDER")}
-                        </button>
-                      )}
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <DownloadInvoiceButton order={order} />
+                        {order.status !== "cancelled" && order.status !== "return_initiated" && order.status !== "return_received" && order.status !== "refund_completed" && (
+                          <button 
+                            onClick={() => handleCancelOrder(order.id, order.status === "delivered")}
+                            disabled={cancellingId === order.id}
+                            className="text-sm font-semibold px-6 py-2.5 border border-maroon text-maroon hover:bg-maroon hover:text-white transition-colors rounded disabled:opacity-50"
+                          >
+                            {cancellingId === order.id 
+                              ? "PROCESSING..." 
+                              : (order.status === "delivered" ? "RETURN ORDER" : "CANCEL ORDER")}
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                   </div>
