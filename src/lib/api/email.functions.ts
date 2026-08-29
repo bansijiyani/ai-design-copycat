@@ -1,20 +1,17 @@
 "use server";
 
-import nodemailer from "nodemailer";
+import { getMailer, getMailFrom, describeMailError } from "./mailer";
 
 export async function sendOrderStatusEmail(order: any, profile: any, newStatus: string) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.error("SMTP credentials not configured.");
+  // Order status mail is best-effort: never fail the status update because the
+  // notification could not go out.
+  let transporter;
+  try {
+    transporter = getMailer();
+  } catch (error) {
+    console.error("Failed to send order status email:", error);
     return;
   }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
 
   const statusText = newStatus.replace(/_/g, " ").toUpperCase();
   const subject = `Update on your FizTopz Order #${order.id.slice(0, 8)}`;
@@ -66,13 +63,13 @@ export async function sendOrderStatusEmail(order: any, profile: any, newStatus: 
 
   try {
     await transporter.sendMail({
-      from: `"FizTopz" <${process.env.SMTP_USER}>`,
+      from: getMailFrom(),
       to: profile.email,
       subject,
       html,
     });
     console.log(`Order status email sent to ${profile.email}`);
   } catch (error) {
-    console.error("Failed to send order status email:", error);
+    describeMailError(error);
   }
 }

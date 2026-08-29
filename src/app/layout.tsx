@@ -30,7 +30,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body>
+      {/* Browser extensions (ColorZilla, Grammarly, MetaMask, …) inject
+          attributes onto <body> before React hydrates, which otherwise logs a
+          hydration mismatch. Suppression is one level deep and does not affect
+          the app's own markup. */}
+      <body suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>
