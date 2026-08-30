@@ -37,3 +37,20 @@ export const CONTACT_PHONE = "+91-99048-60460";
 export const CONTACT_EMAIL = "fiztopzfeb@gmail.com";
 
 export const LOGO_URL = `${SITE_URL}/header-logo.png`;
+
+/**
+ * Metadata for pages that must stay out of search results — cart, auth and
+ * account screens.
+ *
+ * These routes are deliberately NOT blocked in robots.txt. A `Disallow` rule
+ * stops Google fetching the page at all, which means it never sees this
+ * noindex directive, and an already-indexed URL stays in the index forever.
+ * Allowing the crawl and serving noindex is what actually removes them.
+ */
+export const NOINDEX = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+} as const;
