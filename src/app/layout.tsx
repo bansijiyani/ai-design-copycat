@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/header-logo.png",
   },
+  other: {
+    // Google AdSense site verification. Must be present on every page, so it
+    // lives in the root layout's metadata rather than a single route.
+    "google-adsense-account": "ca-pub-6608424869504486",
+  },
 };
 
 export default function RootLayout({
