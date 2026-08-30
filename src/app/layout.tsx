@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   // scrapers cannot fetch.
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Premium Indian Fashion`,
+    default: `${SITE_NAME} - Premium Indian Fashion`,
     // Child pages set only their own name; the brand is appended automatically.
     template: `%s | ${SITE_NAME}`,
   },
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: `${SITE_NAME} — Premium Indian Fashion`,
+    title: `${SITE_NAME} - Premium Indian Fashion`,
     description: SITE_DESCRIPTION,
     type: "website",
     url: SITE_URL,
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Premium Indian Fashion`,
+    title: `${SITE_NAME} - Premium Indian Fashion`,
     description: SITE_DESCRIPTION,
     images: ["/header-logo.png"],
   },
