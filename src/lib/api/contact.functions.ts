@@ -1,7 +1,7 @@
 "use server";
 
-import nodemailer from "nodemailer";
 import { z } from "zod";
+import { getMailer, describeMailError } from "./mailer";
 
 const ContactSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -17,17 +17,7 @@ export async function submitContactForm({ data }: { data: { name: string; email:
 
   const { name, email, message } = result.data;
 
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error("SMTP credentials not configured.");
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  const transporter = getMailer();
 
   const html = `
     <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #FBF9F6; padding: 40px 20px; color: #333;">
@@ -76,7 +66,6 @@ export async function submitContactForm({ data }: { data: { name: string; email:
     });
     return { success: true };
   } catch (err: any) {
-    console.error("Nodemailer error:", err);
-    throw new Error("Failed to send message. Please try again later.");
+    throw new Error(describeMailError(err));
   }
 }

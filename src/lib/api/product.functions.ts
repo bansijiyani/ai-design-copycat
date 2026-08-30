@@ -216,3 +216,91 @@ export async function getAdminProducts() {
   if (error) throw new Error(error.message);
   return data;
 }
+
+// --- PRODUCT REVIEWS API ---
+
+export async function getProductReviews({ data: { productId } }: { data: { productId: string } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("product_reviews")
+    .select("*")
+    .eq("product_id", productId)
+    .eq("is_approved", true)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function submitProductReview({ data: { productId, rating, reviewText, images, reviewerName } }: { data: { productId: string, rating: number, reviewText: string, images: string[], reviewerName: string } }) {
+  const { getUserId } = await import("@/integrations/supabase/auth-middleware");
+  const userId = await getUserId().catch(() => null);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("product_reviews")
+    .insert({
+      product_id: productId,
+      user_id: userId,
+      reviewer_name: reviewerName,
+      rating,
+      review_text: reviewText,
+      images,
+      is_approved: false
+    });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/products/${productId}`);
+  return { success: true };
+}
+
+export async function getAdminReviews() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("product_reviews")
+    .select(`
+      *,
+      product:products(name, image)
+    `)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function updateReviewStatus({ data: { id, is_approved } }: { data: { id: string, is_approved: boolean } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("product_reviews")
+    .update({ is_approved })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/products");
+  return { success: true };
+}
+
+export async function deleteReview({ data: { id } }: { data: { id: string } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("product_reviews")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/reviews");
+  return { success: true };
+}
+
+export async function createAdminReview({ data: { productId, rating, reviewText, images, reviewerName } }: { data: { productId: string, rating: number, reviewText: string, images: string[], reviewerName: string } }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("product_reviews")
+    .insert({
+      product_id: productId,
+      reviewer_name: reviewerName,
+      rating,
+      review_text: reviewText,
+      images,
+      is_approved: true
+    });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/reviews");
+  revalidatePath(`/products/${productId}`);
+  return { success: true };
+}

@@ -1,14 +1,14 @@
 "use server";
 
 import { z } from "zod";
-import nodemailer from "nodemailer";
+import { getMailer, getMailFrom, describeMailError } from "./mailer";
 
 export async function sendOtpEmail({ data: { email, type } }: { data: { email: string, type: "signup" | "admin_login" } }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error("SMTP credentials not configured.");
-  }
+  // Resolve the transporter before writing the OTP row, so a misconfigured
+  // server fails fast instead of leaving an unusable code behind.
+  const transporter = getMailer();
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date();
@@ -31,14 +31,6 @@ export async function sendOtpEmail({ data: { email, type } }: { data: { email: s
     });
 
   if (dbError) throw new Error("Failed to generate OTP: " + dbError.message);
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
 
   const subject = type === "signup" ? "Verify your email address" : "Admin Dashboard 2FA Code";
   const html = `
@@ -72,15 +64,14 @@ export async function sendOtpEmail({ data: { email, type } }: { data: { email: s
 
   try {
     await transporter.sendMail({
-      from: `"FizTopz" <${process.env.SMTP_USER}>`,
+      from: getMailFrom(),
       to: email,
       subject,
       html,
     });
     return { success: true };
   } catch (err: any) {
-    console.error("Nodemailer error:", err);
-    throw new Error("Failed to send email");
+    throw new Error(describeMailError(err));
   }
 }
 

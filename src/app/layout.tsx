@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+
+// Must be referenced statically: Next inlines NEXT_PUBLIC_* at build time.
+const ADSENSE_ID = process.env.NEXT_PUBLIC_ADSENSE_ID;
 
 export const metadata: Metadata = {
   title: "FizTopz — Premium Indian Fashion",
@@ -16,6 +20,13 @@ export const metadata: Metadata = {
   icons: {
     icon: "/header-logo.png",
   },
+  // Google AdSense site verification. Must be present on every page, so it
+  // lives in the root layout's metadata rather than a single route.
+  // Omitted entirely when NEXT_PUBLIC_ADSENSE_ID is unset, so a missing
+  // environment variable never renders an empty content="" tag.
+  ...(ADSENSE_ID
+    ? { other: { "google-adsense-account": ADSENSE_ID } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -30,10 +41,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body>
+      {/* Browser extensions (ColorZilla, Grammarly, MetaMask, …) inject
+          attributes onto <body> before React hydrates, which otherwise logs a
+          hydration mismatch. Suppression is one level deep and does not affect
+          the app's own markup. */}
+      <body suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -7,11 +7,17 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { getProducts } from "@/lib/api/product.functions";
+import { getSettings } from "@/lib/api/settings.functions";
 
 export default function Home() {
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: () => getProducts(),
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ["app_settings"],
+    queryFn: () => getSettings(),
   });
 
   const edit = products.slice(0, 8);
@@ -25,18 +31,17 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16 lg:py-24 grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <p className="flex items-center gap-3 text-xs tracking-[0.3em] text-gold uppercase">
-            <span className="h-px w-10 bg-gold" /> New Season 2026
+            <span className="h-px w-10 bg-gold" /> {settings?.homepage_banner_subtitle || "New Season 2026"}
           </p>
-          <h1 className="font-display text-6xl lg:text-7xl xl:text-8xl leading-[0.95] mt-6">
-            Wear the
-            <br />
-            <span className="text-gold italic">World.</span> Own
-            <br />
-            Every <span className="text-maroon italic">Room.</span>
-          </h1>
+          <h1 
+            className="font-display text-6xl lg:text-7xl xl:text-8xl leading-[0.95] mt-6"
+            dangerouslySetInnerHTML={{
+              __html: settings?.homepage_title || `Wear the<br /><span class="text-gold italic">World.</span> Own<br />Every <span class="text-maroon italic">Room.</span>`
+            }}
+          />
           <div className="w-16 h-1 bg-gold mt-8" />
           <p className="mt-8 text-muted-foreground max-w-md leading-relaxed">
-            Premium ethnic and western fashion for India's boldest. Every thread tells a story. Every look makes a statement.
+            {settings?.homepage_subtitle || "Premium ethnic and western fashion for India's boldest. Every thread tells a story. Every look makes a statement."}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href={{ pathname: "/products", query: { category: "sarees" } }} className="px-8 py-3.5 border-2 border-gold text-gold font-semibold tracking-wider text-sm hover:bg-gold hover:text-white transition">
@@ -64,11 +69,11 @@ export default function Home() {
         <div className="relative">
           <div className="absolute -top-4 -left-4 right-8 bottom-8 border-2 border-gold/40 rounded-sm" />
           <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
-            <img src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=900&h=1100&fit=crop" alt="Model in saree" className="w-full h-full object-cover" />
+            <img src={settings?.homepage_banner_image || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=900&h=1100&fit=crop"} alt="Model in saree" className="w-full h-full object-cover" />
             <div className="absolute bottom-6 left-6 bg-background/95 backdrop-blur px-5 py-4 rounded-sm">
-              <p className="text-[10px] tracking-[0.2em] text-muted-foreground">NEW ARRIVAL</p>
-              <p className="font-display text-lg mt-1">Bridal Collection 2026</p>
-              <p className="text-gold text-sm font-semibold">From ₹4,999</p>
+              <p className="text-[10px] tracking-[0.2em] text-muted-foreground">{settings?.homepage_banner_label || "NEW ARRIVAL"}</p>
+              <p className="font-display text-lg mt-1">{settings?.homepage_banner_heading || "Bridal Collection 2026"}</p>
+              <p className="text-gold text-sm font-semibold">{settings?.homepage_banner_price || "From ₹4,999"}</p>
             </div>
           </div>
         </div>
