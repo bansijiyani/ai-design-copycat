@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
 import { StructuredData } from "@/components/StructuredData";
+import { GoogleAdSense } from "@/components/GoogleAdSense";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/seo";
 
 // Must be referenced statically: Next inlines NEXT_PUBLIC_* at build time.
@@ -95,6 +96,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <GoogleTagManager />
         <StructuredData />
+        <GoogleAdSense />
       </head>
       {/* Browser extensions (ColorZilla, Grammarly, MetaMask, …) inject
           attributes onto <body> before React hydrates, which otherwise logs a
